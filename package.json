@@ -33,7 +33,7 @@
     "type": "git",
     "url": "git+https://github.com/SovereignWallet-Network/mui-metablockchain-sdk.git"
   },
-  "author": "",
+  "author": "SWNGlobal",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/SovereignWallet-Network/mui-metablockchain-sdk/issues"

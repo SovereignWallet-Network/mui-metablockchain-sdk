@@ -1,5 +1,3 @@
-![Build Status](https://github.com/SovereignWallet-Network/mui-metablockchain-sdk/workflows/Metablock%20SDK%20CI/badge.svg)
-
 ### MUI Metablockchain SDK
 
 JS SDK to interface with substrate node of MUI Metablockchain.

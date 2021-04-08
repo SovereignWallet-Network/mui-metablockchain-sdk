@@ -4,7 +4,7 @@ JS SDK to interface with substrate node of MUI Metablockchain.
 
 ## Install
 ```
-npm install mui-metablockchain-sdk
+npm install https://github.com/SovereignWallet-Network/mui-metablockchain-sdk#main
 ```
 
 ## Usage

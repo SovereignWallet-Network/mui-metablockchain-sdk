@@ -21,7 +21,7 @@ In future when multiple nodes are being hosted, the user will have to option to 
 
 - Create a DID and write on chain
 ```
-const { connection, did, config } = require('metablockchain-sdk);
+const { connection, did, config } = require('mui-metablockchain-sdk');
 const NETWORK = "dev";
 
 async function create_new_did(){

@@ -27,6 +27,33 @@ async function sendTransaction(
   return provider.tx.balances.transfer(receiverAccountID, amount).signAndSend(senderAccountKeyPair);
 }
 
+/**
+ * This function is similar to sendTransaction except that it provides the user to add the memo to transfer functionality.
+ * 
+ * @param {KeyringObj} senderAccountKeyPair
+ * @param {String} receiverDID
+ * @param {String} amount
+ * @param {String} memo
+ * @param {APIPromise} api (optional)
+ * @returns {Uint8Array}
+ */
+ async function transfer(
+  senderAccountKeyPair,
+  receiverDID,
+  amount,
+  memo,
+  api = false,
+) {
+  const provider = api || (await buildConnection('local'));
+  // check if the recipent DID is valid
+  const receiverAccountID = await resolveDIDToAccount(receiverDID, provider);
+  if (!receiverAccountID) {
+    throw new Error('balances.RecipentDIDNotRegistered');
+  }
+  return provider.tx.balances.transferWithMemo(receiverAccountID, amount, memo).signAndSend(senderAccountKeyPair);
+}
+
 module.exports = {
   sendTransaction,
+  transfer
 };

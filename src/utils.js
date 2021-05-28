@@ -25,6 +25,7 @@ const METABLOCKCHAIN_TYPES = {
   },
   CurrencyId: 'i64',
   Amount: 'i64',
+  Memo: "Vec<u8>",
 };
 
 const bytesToHex = (inputBytes) => u8aToHex(inputBytes);

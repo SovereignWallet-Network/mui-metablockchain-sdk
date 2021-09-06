@@ -9,20 +9,32 @@ describe('Transaction works correctly', () => {
   let sigKeypairWithBal = null;
   let sigKeypairWithoutBal = null;
   before(async () => {
+    const provider = await buildConnection('dev');
     const keyring = await initKeyring();
     sigKeypairWithBal = await keyring.addFromUri(constants.mnemonicWithBalance);
     sigKeypairWithoutBal = await keyring.addFromUri('//Test123');
+    const transfer = await tx.sendTransaction(sigKeypairWithBal, 'did:ssid:metamui', '1', provider);
+    assert.doesNotReject(transfer);
+    // This is needed to perform the next test
+    await sleep(5000);
   });
 
-  // it('Transaction works correctly', async () => {
-  //   const provider = await buildConnection('dev');
-  //   const transfer = await tx.sendTransaction(sigKeypairWithBal, 'did:ssid:stanly', '1', provider);
-  //   assert.doesNotReject(transfer);
-  // });
+  function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }   
+
+  it('Transaction works correctly with nonce', async () => {
+    const provider = await buildConnection('dev');
+    const nonce = await provider.rpc.system.accountNextIndex(sigKeypairWithBal.address);
+    const transfer = await tx.sendTransaction(sigKeypairWithBal, 'did:ssid:metamui', '1', provider, nonce);
+    assert.doesNotReject(transfer);
+  });
 
   it('Transaction fails when sender has no balance', async () => {
     const provider = await buildConnection('dev');
-    await tx.sendTransaction(sigKeypairWithoutBal, 'did:ssid:stanly', '1', provider).catch((err) => expect(err.toString()).to.contains('balances.InsufficentBalance'));
+    await tx.sendTransaction(sigKeypairWithoutBal, 'did:ssid:testing_mui', '1', provider).catch((err) => expect(err.toString()).to.contains('balances.InsufficentBalance'));
   });
 
   it('Transaction fails when recipent has no DID', async () => {

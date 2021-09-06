@@ -6,7 +6,7 @@ const ssidJson = require('../src/vc_schema/ssid.json');
 
 describe('SSID VC works correctly', () => {
   const originJson = ssidJson;
-  originJson.did = 'did:ssid:stanly';
+  originJson.did = 'did:ssid:metamui';
   originJson.public_key = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY';
   const expectedHash = u8aToHex(sha256(stringToU8a(JSON.stringify(originJson))));
 

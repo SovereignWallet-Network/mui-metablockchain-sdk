@@ -10,6 +10,7 @@ const { resolveDIDToAccount } = require('./did.js');
  * @param {String} receiverDID
  * @param {String} amount
  * @param {APIPromise} api (optional)
+ * @param {int} nonce (optional)
  * @returns {Uint8Array}
  */
 async function sendTransaction(
@@ -17,6 +18,7 @@ async function sendTransaction(
   receiverDID,
   amount,
   api = false,
+  nonce = -1,
 ) {
   const provider = api || (await buildConnection('local'));
   // check if the recipent DID is valid
@@ -24,7 +26,7 @@ async function sendTransaction(
   if (!receiverAccountID) {
     throw new Error('balances.RecipentDIDNotRegistered');
   }
-  return provider.tx.balances.transfer(receiverAccountID, amount).signAndSend(senderAccountKeyPair);
+  return provider.tx.balances.transfer(receiverAccountID, amount).signAndSend(senderAccountKeyPair, { nonce: nonce });
 }
 
 /**
@@ -35,6 +37,7 @@ async function sendTransaction(
  * @param {String} amount
  * @param {String} memo
  * @param {APIPromise} api (optional)
+ * @param {int} nonce (optional)
  * @returns {Uint8Array}
  */
  async function transfer(
@@ -43,6 +46,7 @@ async function sendTransaction(
   amount,
   memo,
   api = false,
+  nonce = -1,
 ) {
   const provider = api || (await buildConnection('local'));
   // check if the recipent DID is valid
@@ -50,7 +54,7 @@ async function sendTransaction(
   if (!receiverAccountID) {
     throw new Error('balances.RecipentDIDNotRegistered');
   }
-  return provider.tx.balances.transferWithMemo(receiverAccountID, amount, memo).signAndSend(senderAccountKeyPair);
+  return provider.tx.balances.transferWithMemo(receiverAccountID, amount, memo).signAndSend(senderAccountKeyPair, { nonce: nonce });
 }
 
 module.exports = {

@@ -9,10 +9,10 @@
     "test": "mocha --timeout 20000 --exit"
   },
   "dependencies": {
-    "@polkadot/api": "^2.8.1",
-    "@polkadot/types": "^2.8.1",
-    "@polkadot/util": "^4.1.1",
-    "@polkadot/util-crypto": "^4.0.1",
+    "@polkadot/api": "^4.2.2-4",
+    "@polkadot/types": "^4.2.2-4",
+    "@polkadot/util": "^6.0.5",
+    "@polkadot/util-crypto": "^6.0.5",
     "js-sha256": "^0.9.0"
   },
   "devDependencies": {

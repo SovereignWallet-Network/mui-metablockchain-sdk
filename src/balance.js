@@ -1,4 +1,5 @@
 const { buildConnection } = require('./connection.js');
+const { sanitiseDid } = require('./did.js');
 
 /**
  * Get account balance based on the did supplied.
@@ -11,7 +12,8 @@ const getBalance = async (did, api = false) => {
   // Resolve the did to get account ID
   try {
     const provider = api || await buildConnection('local');
-    const accountInfo = await provider.query.did.account(did);
+    const did_hex = sanitiseDid(did);
+    const accountInfo = await provider.query.did.account(did_hex);
     const { data } = accountInfo.toJSON();
     return data.free / 1e6;
   } catch (err) {
@@ -28,7 +30,8 @@ const getBalance = async (did, api = false) => {
 const subscribeToBalanceChanges = async (identifier, callback, api = false) => {
   try {
     const provider = api || await buildConnection('local');
-    return provider.query.did.account(identifier, ({ data: { free: currentBalance } }) => {
+    const did_hex = sanitiseDid(identifier);
+    return provider.query.did.account(did_hex, ({ data: { free: currentBalance } }) => {
       callback(currentBalance.toNumber() / 1e6);
     });
   } catch (err) {

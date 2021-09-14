@@ -5,6 +5,7 @@ const { buildConnection } = require('./connection.js');
 const IDENTIFIER_PREFIX = 'did:ssid:';
 const IDENTIFIER_MAX_LENGTH = 20;
 const IDENTIFIER_MIN_LENGTH = 3;
+const DID_HEX_LEN = 64;
 
 const generateMnemonic = () => mnemonicGenerate();
 
@@ -65,7 +66,7 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
     try {
       const provider = api || (await buildConnection('local'));
 
-      const tx = provider.tx.did.add(DID.public_key, DID.identity, DID.metadata);
+      const tx = provider.tx.did.add(DID.public_key, sanitiseDid(DID.identity), DID.metadata);
 
       await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
         console.log('Transaction status:', status.type);
@@ -101,7 +102,8 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
 async function getDIDDetails(identifier, api = false) {
   try {
     const provider = api || (await buildConnection('local'));
-    const data = (await provider.query.did.dIDs(identifier)).toJSON();
+    const did_hex = sanitiseDid(identifier);
+    const data = (await provider.query.did.dIDs(did_hex)).toJSON();
     return {
       identifier: data[0].identifier,
       public_key: data[0].public_key,
@@ -121,7 +123,8 @@ async function getDIDDetails(identifier, api = false) {
  */
 async function resolveDIDToAccount(identifier, api = false) {
   const provider = api || (await buildConnection('dev'));
-  const data = (await provider.query.did.lookup(identifier)).toHuman();
+  const did_hex = sanitiseDid(identifier);
+  const data = (await provider.query.did.lookup(did_hex)).toHuman();
   return data;
 }
 
@@ -151,8 +154,9 @@ async function resolveAccountIdToDid(accountId, api = false) {
  */
 async function updateDidKey(identifier, newKey, signingKeypair, api) {
   const provider = api || (await buildConnection('local'));
+  const did_hex = sanitiseDid(identifier);
   // call the rotateKey extrinsinc
-  const tx = provider.tx.did.rotateKey(identifier, newKey);
+  const tx = provider.tx.did.rotateKey(did_hex, newKey);
   const signedtx = await tx.signAndSend(signingKeypair);
   return signedtx.toHex();
 }
@@ -170,6 +174,26 @@ function convertFixedSizeHex(data, size = 64) {
 }
 
 /**
+ * Checks if the given did is in hex format or not & converts it into valid hex format.
+ * 
+ *  Note: This util function is needed since dependant module wont convert the utf did to hex anymore
+ * 
+ * @param {String} did
+ * @return {String} Hex did
+ */
+const sanitiseDid = (did) => {
+  
+  if (did.startsWith('0x')) {
+    // already hex string
+    return did.padEnd(DID_HEX_LEN, '0');
+  }
+  // console.log('Converting to hex');
+  let hex_did = Buffer.from(did, 'utf8').toString('hex');
+  hex_did = '0x'+ hex_did.padEnd(DID_HEX_LEN, '0');
+  return hex_did;
+}
+
+/**
  * Check if the user is an approved validator
  * @param {String} identifier
  * @param {ApiPromise} api
@@ -177,13 +201,9 @@ function convertFixedSizeHex(data, size = 64) {
  */
 async function isDidValidator(identifier, api = false) {
   const provider = api || (await buildConnection('local'));
-  // convert the identifier to hex notation
-  const identifierHex = convertFixedSizeHex(identifier);
+  const did_hex = sanitiseDid(identifier);
   const vList = (await provider.query.validatorSet.members()).toJSON();
-  for (x of vList) {
-    if (x.toString() === identifierHex) return true;
-  }
-  return false;
+  return vList.includes(did_hex);
 }
 
 /**
@@ -194,7 +214,8 @@ async function isDidValidator(identifier, api = false) {
  */
 async function getDidKeyHistory(identifier, api = false) {
   const provider = api || (await buildConnection('dev'));
-  const data = (await provider.query.did.prevKeys(identifier)).toHuman();
+  const did_hex = sanitiseDid(identifier);
+  const data = (await provider.query.did.prevKeys(did_hex)).toHuman();
   return data;
 }
 
@@ -207,7 +228,8 @@ async function getDidKeyHistory(identifier, api = false) {
  */
 async function updateMetadata(identifier, metadata, signingKeypair, api = false) {
   const provider = api || (await buildConnection('dev'));
-  const tx = provider.tx.did.updateMetadata(identifier, metadata);
+  const did_hex = sanitiseDid(identifier);
+  const tx = provider.tx.did.updateMetadata(did_hex, metadata);
   const signedtx = await tx.signAndSend(signingKeypair);
   return signedtx.toHex();
 }
@@ -223,4 +245,5 @@ module.exports = {
   resolveAccountIdToDid,
   isDidValidator,
   updateMetadata,
+  sanitiseDid,
 };

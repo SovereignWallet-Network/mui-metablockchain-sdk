@@ -122,7 +122,7 @@ async function getDIDDetails(identifier, api = false) {
  * @returns {String}
  */
 async function resolveDIDToAccount(identifier, api = false) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(identifier);
   const data = (await provider.query.did.lookup(did_hex)).toHuman();
   return data;
@@ -135,7 +135,7 @@ async function resolveDIDToAccount(identifier, api = false) {
  * @returns {String | Boolean} (false if not found)
  */
 async function resolveAccountIdToDid(accountId, api = false) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   const data = (await provider.query.did.rLookup(accountId)).toHuman();
   // return false if empty
   if (data === '0x0000000000000000000000000000000000000000000000000000000000000000') {
@@ -213,7 +213,7 @@ async function isDidValidator(identifier, api = false) {
  * returns Array
  */
 async function getDidKeyHistory(identifier, api = false) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(identifier);
   const data = (await provider.query.did.prevKeys(did_hex)).toHuman();
   return data;
@@ -227,7 +227,7 @@ async function getDidKeyHistory(identifier, api = false) {
  * @param {ApiPromise} api
  */
 async function updateMetadata(identifier, metadata, signingKeypair, api = false) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(identifier);
   const tx = provider.tx.did.updateMetadata(did_hex, metadata);
   const signedtx = await tx.signAndSend(signingKeypair);

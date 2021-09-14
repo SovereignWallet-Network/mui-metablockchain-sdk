@@ -13,7 +13,7 @@ const NETWORK_PROVIDER = {
 // global obj to cache ws connection
 let providerInstance = null;
 
-function buildNewConnection(network = 'dev') {
+function buildNewConnection(network = 'local') {
   if (!(network in NETWORK_PROVIDER)) throw new Error('Invalid Network!');
 
   const provider = new WsProvider(NETWORK_PROVIDER[network]);
@@ -30,7 +30,7 @@ function buildNewConnection(network = 'dev') {
  * Note : setting the ignoreCache value to true will create a new ws
  * ws conection on every call
  */
-function buildConnection(network = 'dev', ignoreCache = false) {
+function buildConnection(network = 'local', ignoreCache = false) {
   if (!providerInstance || ignoreCache) {
     console.log('Creating new websocket connection!');
     providerInstance = buildNewConnection(network);

@@ -17,7 +17,7 @@ describe('DID Module works correctly', () => {
 
   before(async () => {
     const keyring = await initKeyring();
-    provider = await buildConnection('dev');
+    provider = await buildConnection('testnet');
     sigKeypairWithBal = await keyring.addFromUri(constant.mnemonicWithBalance);
   });
 
@@ -72,7 +72,7 @@ describe('DID Module works correctly', () => {
     const data = await did.isDidValidator('did:ssid:swn', provider);
     assert.strictEqual(data, true);
 
-    const data2 = await did.isDidValidator('Stanly', provider);
+    const data2 = await did.isDidValidator('did:ssid:mui-guru', provider);
     assert.strictEqual(data2, false);
   });
 

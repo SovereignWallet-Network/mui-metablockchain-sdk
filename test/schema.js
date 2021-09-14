@@ -28,19 +28,19 @@ describe('Schema Module works correctly', () => {
   });
 
   it('Schema checks rejects invalid hex', async () => {
-    const provider = await buildConnection('dev');
+    const provider = await buildConnection('testnet');
     const test = await schema.doesSchemaExist('abc', provider);
     assert.strictEqual(test, false);
   });
   // Remove blockchain dependent tests
   // it('Schema checks rejects non existent schema', async () => {
-  //   const provider = await buildConnection('dev');
+  //   const provider = await buildConnection('testnet');
   //   const test = await schema.doesSchemaExist(constants.inValidSchema, provider);
   //   assert.strictEqual(test, false);
   // });
 
   // it('Schema checks accepts valid schema', async () => {
-  //   const provider = await buildConnection('dev');
+  //   const provider = await buildConnection('testnet');
   //   const test = await schema.doesSchemaExist(constants.validSchema, provider);
   //   assert.strictEqual(test, true);
   // });

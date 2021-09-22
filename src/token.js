@@ -24,7 +24,7 @@ async function transferToken(
   senderAccountKeyPair,
   api = false,
 ) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   // check if the recipent DID is valid
   const receiverAccountID = await resolveDIDToAccount(recipentDid, provider);
   if (!receiverAccountID) {
@@ -53,7 +53,7 @@ async function issueNewToken(
   senderAccountKeyPair,
   api = false,
 ) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   // check if the recipent DID is valid
   const receiverAccountID = await resolveDIDToAccount(recipentDid, provider);
   if (!receiverAccountID) {
@@ -77,7 +77,7 @@ async function issueNewToken(
  * @returns {String}
  */
 async function getTokenBalance(did, tokenId, api = false) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   const data = (await provider.query.tokens.accounts(did, tokenId)).toHuman().free;
   return data;
 }
@@ -89,7 +89,7 @@ async function getTokenBalance(did, tokenId, api = false) {
  * @returns {String}
  */
 async function getTokenNameFromTokenId(tokenId, api = false) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   const data = (await provider.query.tokens.tokenIdentifier(tokenId)).toHuman();
   return data;
 }
@@ -100,7 +100,7 @@ async function getTokenNameFromTokenId(tokenId, api = false) {
  * @returns {Array} [ { id: '1', name: 'XYZ' }, { id: '2', name: 'ABC' } ]
  */
 async function getTokenList(api = false) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   const data = await provider.query.tokens.tokenIdentifier.entries();
   return data.map(([{ args: [CurrencyId] }, value]) => ({
     id: CurrencyId.toHuman(),
@@ -115,7 +115,7 @@ async function getTokenList(api = false) {
  * @returns {String} totalSupply
  */
 async function getTokenTotalSupply(tokenId, api = false) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   const data = await provider.query.tokens.totalIssuance(tokenId);
   return data.toHuman();
 }
@@ -137,7 +137,7 @@ async function withdrawTreasuryReserve(
   senderAccountKeyPair,
   api = false,
 ) {
-  const provider = api || (await buildConnection('dev'));
+  const provider = api || (await buildConnection('local'));
   const tx = provider.tx.tokens.withdrawReserved(destination, from, amount);
   const signedTx = await tx.signAndSend(senderAccountKeyPair);
   return signedTx.toHex();

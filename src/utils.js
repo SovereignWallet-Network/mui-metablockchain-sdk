@@ -31,6 +31,7 @@ const bytesToHex = (inputBytes) => u8aToHex(inputBytes);
 const hexToBytes = (inputString) => hexToU8a(inputString);
 const base58ToBytes = (bs58string) => base58Decode(bs58string);
 const hexToString = (hexString) => polkadotHextoString(hexString).replace(/^\0+/, '').replace(/\0+$/, '');
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
 module.exports = {
   METABLOCKCHAIN_TYPES,
@@ -38,4 +39,5 @@ module.exports = {
   hexToBytes,
   base58ToBytes,
   hexToString,
+  sleep,
 };

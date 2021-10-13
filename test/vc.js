@@ -24,7 +24,7 @@ describe('VC works correctly', () => {
   before(async () => {
     const keyring = await initKeyring();
     sigKeypair = await keyring.addFromUri('//Alice');
-    provider = await buildConnection('testnet');
+    provider = await buildConnection(constants.providerNetwork);
   });
 
   it('VC is created in correct format', async () => {

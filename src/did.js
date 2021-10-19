@@ -119,13 +119,28 @@ async function getDIDDetails(identifier, api = false) {
  * Get the accountId for a given DID
  * @param {String} identifier
  * @param {ApiPromise} api
+ * @param {Number} blockNumber
  * @returns {String}
  */
-async function resolveDIDToAccount(identifier, api = false) {
+async function resolveDIDToAccount(identifier, api = false, blockNumber = null) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(identifier);
-  const data = (await provider.query.did.lookup(did_hex)).toHuman();
-  return data;
+  if(!blockNumber && blockNumber != 0) {
+    return (await provider.query.did.lookup(did_hex)).toHuman();
+  }
+  const didDetails = await getDIDDetails(identifier, provider);
+  if(blockNumber > didDetails.added_block) {
+    return (await provider.query.did.lookup(did_hex)).toHuman();
+  }
+  const keyHistories = await getDidKeyHistory(identifier, provider);
+  if(!keyHistories) {
+    return null;
+  }
+  const keyIndex = keyHistories.reverse().findIndex((value) => blockNumber > parseInt(value[1]));
+  if(keyIndex < 0) {
+    return null;
+  }
+  return keyHistories[keyIndex][0];
 }
 
 /**

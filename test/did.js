@@ -75,6 +75,12 @@ describe('DID Module works correctly', () => {
     assert.strictEqual(data2, false);
   });
 
+  it('Resolve DID to account at block number 0 works correctly', async () => {
+    const data = await did.resolveDIDToAccount('did:ssid:swn', provider, 0);
+    // Alice's DID is created at block number 0
+    assert.strictEqual(data, null);
+  });
+
   it('isDidValidator works correctly', async () => {
     //  Alice is expected in the test chain
     const data = await did.isDidValidator('did:ssid:swn', provider);
@@ -112,28 +118,55 @@ describe('DID Module works correctly', () => {
 
   // These test cases should only run in local environment
   if (constants.providerNetwork == 'local') {
+    let addedDidBlockNum = null;
+    let updatedKeyBlockNum = null;
+    let testIdentifier = 'did:ssid:rocket';
+
     it('storeDIDOnChain works correctly', async () => {
       const newDidObj = await did.generateDID(TEST_MNEMONIC, 'rocket', TEST_METADATA);
       await sleep(5000);
       await did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider);
       const newDidDetails = await did.getDIDDetails(newDidObj.identity, provider);
+      addedDidBlockNum = newDidDetails.added_block;
       assert.strictEqual(newDidDetails.public_key, `0x${expectedPubkey}`);
-      assert.strictEqual(newDidDetails.identifier, did.sanitiseDid('did:ssid:rocket'));
+      assert.strictEqual(newDidDetails.identifier, did.sanitiseDid(testIdentifier));
       assert.strictEqual(hexToString(newDidDetails.metadata), 'Metadata');
-    })
+    });
 
     it('updateDidKey works correctly', async () => {
-      const didString = 'did:ssid:rocket';
+      const didString = testIdentifier;
       const pubKey = await keyring.addFromUri(NEW_MNEMONIC).publicKey;
       await sleep(5000);
       await did.updateDidKey(didString, pubKey, sigKeypairWithBal, provider);
       await sleep(5000);
       const newUpdatedDidDetails = await did.getDIDDetails(didString, provider);
+      updatedKeyBlockNum = newUpdatedDidDetails.added_block;
       assert.strictEqual(newUpdatedDidDetails.public_key, `0x${expectedNewPubkey}`);
-      assert.strictEqual(newUpdatedDidDetails.identifier, did.sanitiseDid('did:ssid:rocket'));
-      const keyHistory = (await did.getDidKeyHistory(didString, provider)).map(data => data[0]);
-      assert.equal(keyHistory.includes('5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2'), true);
+      assert.strictEqual(newUpdatedDidDetails.identifier, did.sanitiseDid(testIdentifier));
+      const keyHistory = (await did.getDidKeyHistory(didString, provider));
+      assert.equal(keyHistory.map(data => data[0]).includes('5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2'), true);
     })
+
+    it('Resolve test DID to account at block number 0 works correctly', async () => {
+      const data = await did.resolveDIDToAccount(testIdentifier, provider, 0);
+      assert.strictEqual(data, null);
+    });
+
+    it('Resolve DID to account after did created works correctly', async () => {
+      // const creatAccBlockNumAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum);
+      const nextBlockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum+1);
+      // assert.strictEqual(creatAccBlockNumAcc, null);
+      assert.strictEqual(nextBlockNumberAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
+    });
+
+    it('Resolve DID to account after key updated works correctly', async () => {
+      const prevBlockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, updatedKeyBlockNum-1);
+      const keyUpdateBlockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, updatedKeyBlockNum);
+      const nextblockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, updatedKeyBlockNum+1);
+      assert.strictEqual(prevBlockNumberAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
+      assert.strictEqual(keyUpdateBlockNumberAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
+      assert.strictEqual(nextblockNumberAcc, '5CA8uxffSzq2JyXVKXBudbgC3zBkQGzH2WUUf8ogBiJzxvFJ');
+    });
   }
 
 

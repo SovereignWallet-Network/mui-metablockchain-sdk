@@ -38,7 +38,7 @@ async function sendTransaction(
               const decoded = api.registry.findMetaError(dispatchError.asModule);
               const { documentation, name, section } = decoded;
               console.log(`${section}.${name}: ${documentation.join(' ')}`);
-              reject('Dispatch Module error');
+              reject(`${section}.${name}`);
             } else {
               // Other, CannotLookup, BadOrigin, no extra info
               console.log(dispatchError.toString());
@@ -93,7 +93,7 @@ async function transfer(
               const decoded = api.registry.findMetaError(dispatchError.asModule);
               const { documentation, name, section } = decoded;
               console.log(`${section}.${name}: ${documentation.join(' ')}`);
-              reject('Dispatch Module error');
+              reject(`${section}.${name}`);
             } else {
               // Other, CannotLookup, BadOrigin, no extra info
               console.log(dispatchError.toString());

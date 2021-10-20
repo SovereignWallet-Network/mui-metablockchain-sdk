@@ -34,7 +34,7 @@ describe('Transaction works correctly', () => {
   it('Transaction fails when sender has no balance', async () => {
     const provider = await buildConnection(constants.providerNetwork);
     await tx.sendTransaction(sigKeypairWithoutBal, 'did:ssid:testing_mui', '1', provider)
-      .catch((err) => expect(err.toString()).to.contains('Dispatch Module error'));
+      .catch((err) => expect(err.toString()).to.contains('balances.InsufficientBalance'));
   });
 
   it('Transaction fails when recipent has no DID', async () => {

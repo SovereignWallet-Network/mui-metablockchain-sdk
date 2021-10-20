@@ -41,7 +41,7 @@ async function transferToken(
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
             console.log(`${section}.${name}: ${documentation.join(' ')}`);
-            reject('Dispatch Module error');
+            reject(`${section}.${name}`);
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());
@@ -99,7 +99,7 @@ async function issueNewToken(
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
             console.log(`${section}.${name}: ${documentation.join(' ')}`);
-            reject('Dispatch Module error');
+            reject(`${section}.${name}`);
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());
@@ -197,7 +197,7 @@ async function withdrawTreasuryReserve(
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
             console.log(`${section}.${name}: ${documentation.join(' ')}`);
-            reject('Dispatch Module error');
+            reject(`${section}.${name}`);
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());

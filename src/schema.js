@@ -48,7 +48,7 @@ async function storeSchemaOnChain(schema, signingKeypair, api = false) {
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
             console.log(`${section}.${name}: ${documentation.join(' ')}`);
-            reject('Dispatch Module error');
+            reject(`${section}.${name}`);
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());

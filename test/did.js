@@ -110,7 +110,10 @@ describe('DID Module works correctly', () => {
       sigKeypairWithBal,
       provider
     );
-    await assert.rejects(data);
+    await assert.rejects(data, (err) => {
+      assert.strictEqual(err, 'did.DIDDoesNotExist');
+      return true;
+    });
   });
 
   it('sanitiseDid work correctly', async () => {
@@ -145,13 +148,19 @@ describe('DID Module works correctly', () => {
     it('storeDIDOnChain throws error on duplicate ssid', async () => {
       const newDidObj = await did.generateDID(NEW_MNEMONIC, 'rocket', TEST_METADATA);
       const data = did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider);
-      await assert.rejects(data);
+      await assert.rejects(data, (err) => {
+        assert.strictEqual(err, 'did.DIDAlreadyExists');
+        return true;
+      });
     });
 
     it('storeDIDOnChain throws error on duplicate public key', async () => {
       const newDidObj = await did.generateDID(TEST_MNEMONIC, 'nonexistentdid', TEST_METADATA);
       const data = did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider);
-      await assert.rejects(data);
+      await assert.rejects(data, (err) => {
+        assert.strictEqual(err, 'did.PublicKeyRegistered');
+        return true;
+      });
     });
 
     it('updateDidKey works correctly', async () => {
@@ -169,18 +178,25 @@ describe('DID Module works correctly', () => {
     it('updateDidKey throws error on using existing public key', async () => {
       const pubKey = await keyring.addFromUri(NEW_MNEMONIC).publicKey;
       const data = did.updateDidKey(testIdentifier, pubKey, sigKeypairWithBal, provider);
-      await assert.rejects(data);
+      await assert.rejects(data, (err) => {
+        assert.strictEqual(err, 'did.PublicKeyRegistered');
+        return true;
+      });
     });
 
     it('updateDidKey throws error on using non existent did', async () => {
       const pubKey = await keyring.addFromUri(TEST_MNEMONIC).publicKey;
       const data = did.updateDidKey('did:ssid:nonexistentdid', pubKey, sigKeypairWithBal, provider);
-      await assert.rejects(data);
+      await assert.rejects(data, (err) => {
+        assert.strictEqual(err, 'did.DIDDoesNotExist');
+        return true;
+      });
     });
 
     it('Resolve test DID to account at block number 0 works correctly', async () => {
       const data = await did.resolveDIDToAccount(testIdentifier, provider, 0);
       assert.strictEqual(data, null);
+      return true;
     });
 
     it('Resolve DID to account after did created works correctly', async () => {

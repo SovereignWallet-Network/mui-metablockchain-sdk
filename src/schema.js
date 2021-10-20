@@ -32,20 +32,39 @@ function createNewSchema(schemaProperties) {
  * @param {String} signingKeypair
  */
 async function storeSchemaOnChain(schema, signingKeypair, api = false) {
-  try {
-    const provider = api || await buildConnection('local');
-    // TODO : check if caller is a memeber of validator set
-    const tx = provider.tx.schema.add(
-      schema.hash,
-      schema.json_data,
-    );
-    const signedtx = await tx.signAndSend(signingKeypair);
-    console.log('Transaction send to provider', signedtx.toHex());
-    return signedtx;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || await buildConnection('local');
+      // TODO : check if caller is a memeber of validator set
+      const tx = provider.tx.schema.add(
+        schema.hash,
+        schema.json_data,
+      );
+      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject('Dispatch Module error');
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject('Dispatch error');
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          console.log('Transaction send to provider', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  });
 }
 
 /**

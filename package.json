@@ -6,8 +6,8 @@
   "scripts": {
     "prepare": "npm run build",
     "build": "babel ./src --presets babel-preset-es2015 --out-dir dist",
-    "test": "env PROVIDER_NETWORK=testnet mocha --timeout 20000 --exit",
-    "test:local": "env PROVIDER_NETWORK=local mocha --timeout 60000 --exit"
+    "test": "env PROVIDER_NETWORK=testnet mocha --timeout 80000 --exit",
+    "test:local": "env PROVIDER_NETWORK=local mocha --no-timeouts --exit"
   },
   "dependencies": {
     "@polkadot/api": "^4.2.2-4",

@@ -80,7 +80,7 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());
-            reject('Dispatch error');
+            reject(dispatchError.toString());
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
@@ -187,7 +187,7 @@ async function updateDidKey(identifier, newKey, signingKeypair, api) {
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());
-            reject('Dispatch error');
+            reject(dispatchError.toString());
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
@@ -284,7 +284,7 @@ async function updateMetadata(identifier, metadata, signingKeypair, api = false)
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());
-            reject('Dispatch error');
+            reject(dispatchError.toString());
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());

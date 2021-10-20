@@ -45,7 +45,7 @@ async function transferToken(
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());
-            reject('Dispatch error');
+            reject(dispatchError.toString());
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
@@ -103,7 +103,7 @@ async function issueNewToken(
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());
-            reject('Dispatch error');
+            reject(dispatchError.toString());
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
@@ -201,7 +201,7 @@ async function withdrawTreasuryReserve(
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());
-            reject('Dispatch error');
+            reject(dispatchError.toString());
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());

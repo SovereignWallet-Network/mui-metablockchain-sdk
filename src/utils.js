@@ -24,14 +24,30 @@ const METABLOCKCHAIN_TYPES = {
   "CurrencyId": "i64",
   "Amount": "i64",
   "Memo": "Vec<u8>",
-  "AccountInfo": "AccountInfoWithDualRefCount"
+  "AccountInfo": "AccountInfoWithDualRefCount",
+  "VC": {
+    "hash": "Hash",
+    "owner": "Did",
+    "issuers": "Vec<Did>",
+    "signatures": "Vec<Signature>",
+    "is_vc_used": "bool",
+    "vc_type": "TokenVC"
+  },
+  "TokenVC": {
+    "token_name": "Vec<u8>",
+    "reservable_balance": "Balance"
+  },
+  "VCHash": "Vec<u8>",
+  "VCStatus": "Vec<u8>",
+  "VCid": "[u8;32]",
+  "Hash": "H256",
+  "Signature": "H512"
 }
 
 const bytesToHex = (inputBytes) => u8aToHex(inputBytes);
 const hexToBytes = (inputString) => hexToU8a(inputString);
 const base58ToBytes = (bs58string) => base58Decode(bs58string);
 const hexToString = (hexString) => polkadotHextoString(hexString).replace(/^\0+/, '').replace(/\0+$/, '');
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
 module.exports = {
   METABLOCKCHAIN_TYPES,
@@ -39,5 +55,4 @@ module.exports = {
   hexToBytes,
   base58ToBytes,
   hexToString,
-  sleep,
 };

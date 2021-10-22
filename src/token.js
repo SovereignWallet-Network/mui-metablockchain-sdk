@@ -24,15 +24,39 @@ async function transferToken(
   senderAccountKeyPair,
   api = false,
 ) {
-  const provider = api || (await buildConnection('local'));
-  // check if the recipent DID is valid
-  const receiverAccountID = await resolveDIDToAccount(recipentDid, provider);
-  if (!receiverAccountID) {
-    throw new Error('balances.RecipentDIDNotRegistered');
-  }
-  const tx = provider.tx.tokens.transfer(receiverAccountID, tokenId, tokenAmount);
-  const signedTx = await tx.signAndSend(senderAccountKeyPair);
-  return signedTx.toHex();
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      // check if the recipent DID is valid
+      const receiverAccountID = await resolveDIDToAccount(recipentDid, provider);
+      if (!receiverAccountID) {
+        throw new Error('balances.RecipentDIDNotRegistered');
+      }
+      const tx = provider.tx.tokens.transfer(receiverAccountID, tokenId, tokenAmount);
+      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(`${section}.${name}`);
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject(dispatchError.toString());
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
 }
 
 /**
@@ -53,20 +77,44 @@ async function issueNewToken(
   senderAccountKeyPair,
   api = false,
 ) {
-  const provider = api || (await buildConnection('local'));
-  // check if the recipent DID is valid
-  const receiverAccountID = await resolveDIDToAccount(recipentDid, provider);
-  if (!receiverAccountID) {
-    throw new Error('balances.RecipentDIDNotRegistered');
-  }
-  const tx = provider.tx.tokens.issueToken(
-    receiverAccountID,
-    tokenId,
-    tokenName,
-    totalIssuanceAmt,
-  );
-  const signedTx = await tx.signAndSend(senderAccountKeyPair);
-  return signedTx.toHex();
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      // check if the recipent DID is valid
+      const receiverAccountID = await resolveDIDToAccount(recipentDid, provider);
+      if (!receiverAccountID) {
+        throw new Error('balances.RecipentDIDNotRegistered');
+      }
+      const tx = provider.tx.tokens.issueToken(
+        receiverAccountID,
+        tokenId,
+        tokenName,
+        totalIssuanceAmt,
+      );
+      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(`${section}.${name}`);
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject(dispatchError.toString());
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
 }
 
 /**
@@ -137,10 +185,34 @@ async function withdrawTreasuryReserve(
   senderAccountKeyPair,
   api = false,
 ) {
-  const provider = api || (await buildConnection('local'));
-  const tx = provider.tx.tokens.withdrawReserved(destination, from, amount);
-  const signedTx = await tx.signAndSend(senderAccountKeyPair);
-  return signedTx.toHex();
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      const tx = provider.tx.tokens.withdrawReserved(destination, from, amount);
+      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(`${section}.${name}`);
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject(dispatchError.toString());
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
 }
 
 module.exports = {

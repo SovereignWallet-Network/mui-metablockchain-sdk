@@ -20,13 +20,40 @@ async function sendTransaction(
   api = false,
   nonce = -1,
 ) {
-  const provider = api || (await buildConnection('local'));
-  // check if the recipent DID is valid
-  const receiverAccountID = await resolveDIDToAccount(receiverDID, provider);
-  if (!receiverAccountID) {
-    throw new Error('balances.RecipentDIDNotRegistered');
-  }
-  return provider.tx.balances.transfer(receiverAccountID, amount).signAndSend(senderAccountKeyPair, { nonce: nonce });
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      // check if the recipent DID is valid
+      const receiverAccountID = await resolveDIDToAccount(receiverDID, provider);
+      if (!receiverAccountID) {
+        throw new Error('balances.RecipentDIDNotRegistered');
+      }
+      await provider.tx.balances
+        .transfer(receiverAccountID, amount)
+        .signAndSend(senderAccountKeyPair, { nonce: nonce }, ({ status, dispatchError }) => {
+          console.log('Transaction status:', status.type);
+          if (dispatchError) {
+            if (dispatchError.isModule) {
+              // for module errors, we have the section indexed, lookup
+              const decoded = api.registry.findMetaError(dispatchError.asModule);
+              const { documentation, name, section } = decoded;
+              console.log(`${section}.${name}: ${documentation.join(' ')}`);
+              reject(`${section}.${name}`);
+            } else {
+              // Other, CannotLookup, BadOrigin, no extra info
+              console.log(dispatchError.toString());
+              reject(dispatchError.toString());
+            }
+          } else if (status.isFinalized) {
+            console.log('Finalized block hash', status.asFinalized.toHex());
+            resolve(status.asFinalized.toHex());
+          }
+        });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
 }
 
 /**
@@ -40,7 +67,7 @@ async function sendTransaction(
  * @param {int} nonce (optional)
  * @returns {Uint8Array}
  */
- async function transfer(
+async function transfer(
   senderAccountKeyPair,
   receiverDID,
   amount,
@@ -48,13 +75,40 @@ async function sendTransaction(
   api = false,
   nonce = -1,
 ) {
-  const provider = api || (await buildConnection('local'));
-  // check if the recipent DID is valid
-  const receiverAccountID = await resolveDIDToAccount(receiverDID, provider);
-  if (!receiverAccountID) {
-    throw new Error('balances.RecipentDIDNotRegistered');
-  }
-  return provider.tx.balances.transferWithMemo(receiverAccountID, amount, memo).signAndSend(senderAccountKeyPair, { nonce: nonce });
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      // check if the recipent DID is valid
+      const receiverAccountID = await resolveDIDToAccount(receiverDID, provider);
+      if (!receiverAccountID) {
+        throw new Error('balances.RecipentDIDNotRegistered');
+      }
+      return provider.tx.balances
+        .transferWithMemo(receiverAccountID, amount, memo)
+        .signAndSend(senderAccountKeyPair, { nonce: nonce }, ({ status, dispatchError }) => {
+          console.log('Transaction status:', status.type);
+          if (dispatchError) {
+            if (dispatchError.isModule) {
+              // for module errors, we have the section indexed, lookup
+              const decoded = api.registry.findMetaError(dispatchError.asModule);
+              const { documentation, name, section } = decoded;
+              console.log(`${section}.${name}: ${documentation.join(' ')}`);
+              reject(`${section}.${name}`);
+            } else {
+              // Other, CannotLookup, BadOrigin, no extra info
+              console.log(dispatchError.toString());
+              reject(dispatchError.toString());
+            }
+          } else if (status.isFinalized) {
+            console.log('Finalized block hash', status.asFinalized.toHex());
+            resolve(status.asFinalized.toHex());
+          }
+        });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
 }
 
 module.exports = {

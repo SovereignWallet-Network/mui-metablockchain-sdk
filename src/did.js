@@ -76,11 +76,11 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
             console.log(`${section}.${name}: ${documentation.join(' ')}`);
-            reject('Dispatch Module error');
+            reject(`${section}.${name}`);
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
             console.log(dispatchError.toString());
-            reject('Dispatch error');
+            reject(dispatchError.toString());
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
@@ -168,12 +168,37 @@ async function resolveAccountIdToDid(accountId, api = false) {
  * @param {ApiPromise} api
  */
 async function updateDidKey(identifier, newKey, signingKeypair, api) {
-  const provider = api || (await buildConnection('local'));
-  const did_hex = sanitiseDid(identifier);
-  // call the rotateKey extrinsinc
-  const tx = provider.tx.did.rotateKey(did_hex, newKey);
-  const signedtx = await tx.signAndSend(signingKeypair);
-  return signedtx.toHex();
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+
+      const did_hex = sanitiseDid(identifier);
+      // call the rotateKey extrinsinc
+      const tx = provider.tx.did.rotateKey(did_hex, newKey);
+      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(`${section}.${name}`);
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject(dispatchError.toString());
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
 }
 
 /**
@@ -242,11 +267,35 @@ async function getDidKeyHistory(identifier, api = false) {
  * @param {ApiPromise} api
  */
 async function updateMetadata(identifier, metadata, signingKeypair, api = false) {
-  const provider = api || (await buildConnection('local'));
-  const did_hex = sanitiseDid(identifier);
-  const tx = provider.tx.did.updateMetadata(did_hex, metadata);
-  const signedtx = await tx.signAndSend(signingKeypair);
-  return signedtx.toHex();
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      const did_hex = sanitiseDid(identifier);
+      const tx = provider.tx.did.updateMetadata(did_hex, metadata);
+      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(`${section}.${name}`);
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject(dispatchError.toString());
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
 }
 
 module.exports = {

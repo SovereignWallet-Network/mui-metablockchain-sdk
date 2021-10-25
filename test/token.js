@@ -26,12 +26,6 @@ describe('Token Module works correctly', () => {
     from = sigKeypairWithBal.address;
   });
 
-  it('Token balance fetch works correctly for non existing tokens', async () => {
-    //  Alice is expected in the test chain
-    const data = await token.getTokenBalance('did:ssid:swn', '990');
-    assert.doesNotReject(data);
-  });
-
   // These test cases should only run in local environment
   if (constants.providerNetwork == 'local') {
     let vcId;

@@ -5,7 +5,7 @@ const METABLOCKCHAIN_TYPES = {
   "PeerId": "(Vec<>)",
   "identifier": "[u8;32]",
   "public_key": "[u8;32]",
-  "metadata": "(Vec<u8>)",
+  "metadata": "Vec<u8>",
   "DidStruct": {
     "identifier": "identifier",
     "public_key": "public_key",
@@ -21,7 +21,7 @@ const METABLOCKCHAIN_TYPES = {
     "value": "Balance",
     "bond": "Balance"
   },
-  "CurrencyId": "i64",
+  "CurrencyId": "u32",
   "Amount": "i64",
   "Memo": "Vec<u8>",
   "AccountInfo": "AccountInfoWithDualRefCount",
@@ -31,17 +31,35 @@ const METABLOCKCHAIN_TYPES = {
     "issuers": "Vec<Did>",
     "signatures": "Vec<Signature>",
     "is_vc_used": "bool",
-    "vc_type": "TokenVC"
+    "vc_type": "VCType",
+    "vc_property": "[u8;128]"
+  },
+  "VCType": {
+    "_enum": [
+      "TokenVC"
+    ]
   },
   "TokenVC": {
-    "token_name": "Vec<u8>",
-    "reservable_balance": "Balance"
+    "token_name": "token_bytes",
+    "reservable_balance": "u128"
   },
   "VCHash": "Vec<u8>",
-  "VCStatus": "Vec<u8>",
+  "VCStatus": {
+    "_enum": [
+    "Active",
+    "Inactive"
+    ]
+  },
   "VCid": "[u8;32]",
   "Hash": "H256",
-  "Signature": "H512"
+  "Signature": "H512",
+  "token_bytes": "[u8;16]",
+  "TokenBytes": "[u8;16]",
+  "TokenData": {
+    "free": "Balance",
+    "reserved": "Balance",
+    "frozen": "Balance"
+  }
 }
 
 const bytesToHex = (inputBytes) => u8aToHex(inputBytes);

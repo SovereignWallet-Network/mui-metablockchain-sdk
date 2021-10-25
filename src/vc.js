@@ -24,26 +24,27 @@ const sha256 = require('js-sha256');
 const { getDIDDetails, getDidKeyHistory, isDidValidator } = require('./did');
 const { buildConnection } = require('./connection.js');
 const { doesSchemaExist } = require('./schema.js');
+const { sanitiseDid } = require('./did');
 
 /**
  * The function returns the VC in the expected format, the verifier and
  * signature fields are left blank to be filled by signing function
- * @param {JSON} properties_json
- * @param {Hex} schema_hash
+ * @param {token_name: String, reservable_balance: Number} tokenVC
+ * @param {did} String
  *
  * @returns {JSON}
  */
-async function createVC(propertiesJson, schemaHash, api=false) {
-  // Check to validate schemaHash
-  // if (!(await doesSchemaExist(schemaHash, api))) {
-  //   throw Error('SchemaHash not valid!');
-  // }
+async function createVC(tokenVC, did, sigKeypair) {
+  const hash = u8aToHex(sha256(stringToU8a(JSON.stringify(tokenVC))));
+  const sign = sigKeypair.sign(hash); 
   return {
-    schema: schemaHash,
-    properties: propertiesJson,
-    hash: u8aToHex(sha256(stringToU8a(JSON.stringify(propertiesJson)))),
-    verifier: undefined,
-    signature: undefined,
+    hash,
+    signatures: [sign],
+    vc_type: {TokenVC: tokenVC},
+    owner: did,
+    issuers: [did],
+    is_vc_used: true,
+    vc_property: tokenVC,
   };
 }
 
@@ -115,9 +116,202 @@ async function verifyVC(vcJson, api = false) {
   return signatureVerify(hexToU8a(vcJson.hash), hexToU8a(vcJson.signature), signerAddress.toString()).isValid;
 }
 
+
+/**
+ * Store vc hex
+ * @param {String} vcHex
+ * @param {KeyringObj} senderAccountKeyPair
+ * @param {APIPromise} api
+ * @returns {hexString}
+ */
+ async function storeVC(
+  vcHex,
+  senderAccountKeyPair,
+  api = false,
+) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+
+      const tx = provider.tx.vc.store(vcHex);
+
+      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(`${section}.${name}`);
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject(dispatchError.toString());
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+}
+
+/**
+ * Store vc hex
+ * @param {String} vcId
+ * @param {String} sign
+ * @param {KeyringObj} senderAccountKeyPair
+ * @param {APIPromise} api
+ * @returns {hexString}
+ */
+ async function addSignature(
+  vcId,
+  sign,
+  senderAccountKeyPair,
+  api = false,
+) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+
+      const tx = provider.tx.vc.addSignature(vcId, sign);
+
+      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(`${section}.${name}`);
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject(dispatchError.toString());
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+}
+
+/**
+ * Update Status
+ * @param {String} vcId
+ * @param {String} vcStatus
+ * @param {KeyringObj} senderAccountKeyPair
+ * @param {APIPromise} api
+ * @returns {hexString}
+ */
+ async function updateStatus(
+  vcId,
+  vcStatus,
+  senderAccountKeyPair,
+  api = false,
+) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+
+      const tx = provider.tx.vc.updateStatus(vcId, vcStatus);
+
+      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(`${section}.${name}`);
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject(dispatchError.toString());
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+}
+
+/**
+ * Get VCs by VC id
+ * @param {String} vcId (hex/base64 version works)
+ * @param {ApiPromise} api
+ * @returns {String} (false if not found)
+ */
+ async function getVCs(vcId, api = false) {
+  const provider = api || (await buildConnection('local'));
+  const data = (await provider.query.vc.vCs(vcId)).toHuman();
+  return data;
+}
+
+/**
+ * Get VC Ids by did
+ * @param {String} did (hex/base64 version works)
+ * @param {ApiPromise} api
+ * @returns {String} (false if not found)
+ */
+ async function getVCIdsByDID(did, api = false) {
+  const provider = api || (await buildConnection('local'));
+  const did_hex = sanitiseDid(did);
+  const data = (await provider.query.vc.lookup(did_hex)).toHuman();
+  return data;
+}
+
+/**
+ * Get DID by VC Id
+ * @param {String} vcId (hex/base64 version works)
+ * @param {ApiPromise} api
+ * @returns {String} (false if not found)
+ */
+ async function getDIDByVCId(vcId, api = false) {
+  const provider = api || (await buildConnection('local'));
+  const data = (await provider.query.vc.rLookup(vcId)).toHuman();
+  return data;
+}
+
+/**
+ * Get DID by VC Id
+ * @param {String} vcId (hex/base64 version works)
+ * @param {ApiPromise} api
+ * @returns {String} (false if not found)
+ */
+ async function getVCHistoryByVCId(vcId, api = false) {
+  const provider = api || (await buildConnection('local'));
+  const data = (await provider.query.vc.vCHistory(vcId)).toHuman();
+  return data;
+}
+
 module.exports = {
-  createVC,
-  signVC,
-  verifyVC,
+  // createVC,
+  // signVC,
+  // verifyVC,
   doesSchemaExist,
+  storeVC,
+  addSignature,
+  updateStatus,
+  getVCs,
+  getVCIdsByDID,
+  getDIDByVCId,
+  getVCHistoryByVCId,
 };

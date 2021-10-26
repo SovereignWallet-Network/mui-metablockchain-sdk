@@ -2,7 +2,6 @@ const assert = require('assert');
 const token = require('../src/token');
 const tx = require('../src/transaction');
 const vc = require('../src/vc');
-const balance = require('../src/balance');
 const { initKeyring } = require('../src/config');
 const { buildConnection } = require('../src/connection');
 const constants = require('./test_constants');

@@ -111,7 +111,7 @@ describe('DID Module works correctly', () => {
       provider
     );
     await assert.rejects(data, (err) => {
-      assert.strictEqual(err, 'did.DIDDoesNotExist');
+      assert.strictEqual(err.message, 'did.DIDDoesNotExist');
       return true;
     });
   });
@@ -149,7 +149,7 @@ describe('DID Module works correctly', () => {
       const newDidObj = await did.generateDID(NEW_MNEMONIC, 'rocket', TEST_METADATA);
       const data = did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider);
       await assert.rejects(data, (err) => {
-        assert.strictEqual(err, 'did.DIDAlreadyExists');
+        assert.strictEqual(err.message, 'did.DIDAlreadyExists');
         return true;
       });
     });
@@ -158,7 +158,7 @@ describe('DID Module works correctly', () => {
       const newDidObj = await did.generateDID(TEST_MNEMONIC, 'nonexistentdid', TEST_METADATA);
       const data = did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider);
       await assert.rejects(data, (err) => {
-        assert.strictEqual(err, 'did.PublicKeyRegistered');
+        assert.strictEqual(err.message, 'did.PublicKeyRegistered');
         return true;
       });
     });
@@ -179,7 +179,7 @@ describe('DID Module works correctly', () => {
       const pubKey = await keyring.addFromUri(NEW_MNEMONIC).publicKey;
       const data = did.updateDidKey(testIdentifier, pubKey, sigKeypairWithBal, provider);
       await assert.rejects(data, (err) => {
-        assert.strictEqual(err, 'did.PublicKeyRegistered');
+        assert.strictEqual(err.message, 'did.PublicKeyRegistered');
         return true;
       });
     });
@@ -188,7 +188,7 @@ describe('DID Module works correctly', () => {
       const pubKey = await keyring.addFromUri(TEST_MNEMONIC).publicKey;
       const data = did.updateDidKey('did:ssid:nonexistentdid', pubKey, sigKeypairWithBal, provider);
       await assert.rejects(data, (err) => {
-        assert.strictEqual(err, 'did.DIDDoesNotExist');
+        assert.strictEqual(err.message, 'did.DIDDoesNotExist');
         return true;
       });
     });

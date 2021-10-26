@@ -54,8 +54,8 @@ const METABLOCKCHAIN_TYPES = {
   "Hash": "H256",
   "Signature": "H512",
   "token_bytes": "[u8;16]",
-  "TokenBytes": "[u8;16]",
-  "TokenData": {
+  "TokenBytes": "[u8;16]", //TODO: Remove this once token identifier issue is resolved
+  "TokenData": { // To solve Account Data issue which has new field
     "free": "Balance",
     "reserved": "Balance",
     "frozen": "Balance"

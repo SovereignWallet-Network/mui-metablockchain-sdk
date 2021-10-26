@@ -7,6 +7,6 @@ module.exports = {
   transaction: require('./transaction'),
   utils: require('./utils'),
   vc: require('./vc'),
-  // token: require('./token'), Will be added after token pallet is released to mainnet.
+  token: require('./token'),
   config: require('./config')
 };

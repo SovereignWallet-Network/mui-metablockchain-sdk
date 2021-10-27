@@ -35,11 +35,11 @@ const utils = require('../src/utils');
  */
 function createTokenVC({ tokenName, reservableBalance }) {
   let tokenVC = {
-    token_name: utils.encodeData(tokenName.padEnd(16, '\0'), 'token_bytes'),
+    token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
     reservable_balance: utils.encodeData(reservableBalance, 'Balance'),
   };
   return utils.encodeData(tokenVC, 'TokenVC')
-    .padEnd(258, '0');
+    .padEnd(utils.TOKEN_VC_BYTES+2, '0'); // +2 bytes for 0x
 }
 
 

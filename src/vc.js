@@ -39,7 +39,7 @@ function createTokenVC({ tokenName, reservableBalance }) {
     reservable_balance: utils.encodeData(reservableBalance, 'Balance'),
   };
   return utils.encodeData(tokenVC, 'TokenVC')
-    .padEnd(utils.TOKEN_VC_BYTES+2, '0'); // +2 bytes for 0x
+    .padEnd((utils.TOKEN_VC_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
 }
 
 

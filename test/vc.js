@@ -6,8 +6,8 @@ const { initKeyring } = require('../src/config');
 const { buildConnection } = require('../src/connection.js');
 const constants = require('./test_constants');
 const utils = require('../src/utils');
-const { u8aToHex } = require('@polkadot/util');
-const { blake2AsHex, signatureVerify, blake2AsU8a } = require('@polkadot/util-crypto');
+const { hexToU8a } = require('@polkadot/util');
+const { signatureVerify, blake2AsU8a } = require('@polkadot/util-crypto');
 
 describe('VC works correctly', () => {
   let sigKeypair = null;
@@ -30,27 +30,29 @@ describe('VC works correctly', () => {
 
   it('VC is created in correct format', async () => {
     let tokenVC = {
-      token_name: utils.encodeData('test'.padEnd(16, '\0'), 'token_bytes'),
-      reservable_balance: utils.encodeData(1000, 'Balance'),
+      tokenName: 'test',
+      reservableBalance: 1000,
     };
-    let encodedTokenVC = utils.encodeData(tokenVC, 'TokenVC').padEnd(258, '0');
-    const hash = blake2AsHex(encodedTokenVC);
-    const sign = u8aToHex(sigKeypairBob.sign(hash));
+    let owner = "did:ssid:rocket";
+    let issuers = [
+      "did:ssid:swn",
+      "did:ssid:eve",
+    ];
+    let actualHex = vc.createVC(tokenVC, owner, issuers, sigKeypairBob);
+    let actualObject = utils.decodeHex(actualHex, 'VC');
     let expectedObject = {
-      hash,
+      hash: '0x8fcc460fd98b54c132cdcaed7d6d8a6026b42c8a39b916635738293e39246e91',
       owner: did.sanitiseDid("did:ssid:rocket"),
       issuers: [
         did.sanitiseDid("did:ssid:swn"),
         did.sanitiseDid("did:ssid:eve")
       ],
-      signatures: [sign],
+      signatures: [''],
       is_vc_used: false,
       vc_type: "TokenVC",
-      vc_property: encodedTokenVC,
+      vc_property: '0x74657374000000000000000000000000e8030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
     };
     let expectedHex = '0x8fcc460fd98b54c132cdcaed7d6d8a6026b42c8a39b916635738293e39246e916469643a737369643a726f636b65740000000000000000000000000000000000086469643a737369643a73776e00000000000000000000000000000000000000006469643a737369643a6576650000000000000000000000000000000000000000048caf7f9e8f5f3e318c0674b2b5b5c4a3b6b776220b4a991060ce2a5245bd0a513c154f1433364f085382561f26aeb30251ac73b110bcc75e8eb6e19e8cab9a80000074657374000000000000000000000000e8030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-    actualHex = utils.encodeData(expectedObject, 'VC');
-    let actualObject = utils.decodeHex(actualHex, 'VC');
     assert.strictEqual(actualHex.substring(0, 32), expectedHex.substring(0, 32));
     assert.strictEqual(actualObject.hash, expectedObject.hash);
     assert.strictEqual(actualObject.owner, expectedObject.owner);
@@ -60,18 +62,17 @@ describe('VC works correctly', () => {
 
   it('VC is signed in correct format', async () => {
     let tokenVC = {
-      token_name: 'test\0\0\0\0\0\0\0\0\0\0\0\0',
-      reservable_balance: 1000,
+      tokenName: 'test',
+      reservableBalance: 1000,
     };
-    let encodedTokenVC = utils.encodeData(tokenVC, 'TokenVC').padEnd(258, '0');
+    eveSign = vc.signVC(tokenVC, signKeypairEve);
+    let encodedTokenVC = vc.createTokenVC(tokenVC);
     const hash = blake2AsU8a(encodedTokenVC);
-    const sign = signKeypairEve.sign(hash);
-    eveSign = u8aToHex(sign);
-    let isSignValid = signatureVerify(hash, sign, signKeypairEve.publicKey).isValid;
+    let isSignValid = signatureVerify(hash, hexToU8a(eveSign), signKeypairEve.publicKey).isValid;
     assert.strictEqual(isSignValid, true);
   });
 
-  if (constants.providerNetwork == 'local' && false) {
+  if (constants.providerNetwork == 'local') {
     let vcId = null;
 
     before(async () => {

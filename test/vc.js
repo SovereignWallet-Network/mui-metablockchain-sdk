@@ -38,7 +38,7 @@ describe('VC works correctly', () => {
       "did:ssid:swn",
       "did:ssid:eve",
     ];
-    let actualHex = vc.createVC(tokenVC, owner, issuers, sigKeypairBob);
+    actualHex = vc.createVC(tokenVC, owner, issuers, sigKeypairBob);
     let actualObject = utils.decodeHex(actualHex, 'VC');
     let expectedObject = {
       hash: '0x8fcc460fd98b54c132cdcaed7d6d8a6026b42c8a39b916635738293e39246e91',

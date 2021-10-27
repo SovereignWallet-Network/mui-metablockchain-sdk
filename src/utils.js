@@ -1,5 +1,6 @@
 const { u8aToHex, hexToU8a, hexToString: polkadotHextoString } = require('@polkadot/util');
 const { base58Decode } = require('@polkadot/util-crypto');
+const types = require('@polkadot/types');
 
 const METABLOCKCHAIN_TYPES = {
   "PeerId": "(Vec<>)",
@@ -66,6 +67,37 @@ const bytesToHex = (inputBytes) => u8aToHex(inputBytes);
 const hexToBytes = (inputString) => hexToU8a(inputString);
 const base58ToBytes = (bs58string) => base58Decode(bs58string);
 const hexToString = (hexString) => polkadotHextoString(hexString).replace(/^\0+/, '').replace(/\0+$/, '');
+const registry = new types.TypeRegistry();
+
+function encodeObject(object, typeKey) {
+  try {
+    if (Array.isArray(METABLOCKCHAIN_TYPES)) {
+      METABLOCKCHAIN_TYPES.forEach(type => {
+        registry.register(type);
+      });
+    } else {
+      registry.register(METABLOCKCHAIN_TYPES);
+    }
+    return types.createType(registry, typeKey, object).toHex();
+  } catch (e) {
+    throw e;
+  }
+}
+
+function decodeHex(hexValue, typeKey) {
+  try {
+    if (Array.isArray(METABLOCKCHAIN_TYPES)) {
+      METABLOCKCHAIN_TYPES.forEach(type => {
+        registry.register(type);
+      });
+    } else {
+      registry.register(METABLOCKCHAIN_TYPES);
+    }
+    return types.createType(registry, typeKey, hexValue).toJSON();
+  } catch (e) {
+    throw e;
+  }
+}
 
 module.exports = {
   METABLOCKCHAIN_TYPES,
@@ -73,4 +105,6 @@ module.exports = {
   hexToBytes,
   base58ToBytes,
   hexToString,
+  encodeObject,
+  decodeHex,
 };

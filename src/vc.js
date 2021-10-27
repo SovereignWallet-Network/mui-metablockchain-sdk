@@ -19,57 +19,63 @@
  * }
  */
 const { stringToU8a, u8aToHex, hexToU8a } = require('@polkadot/util');
-const { signatureVerify } = require('@polkadot/util-crypto');
+const { signatureVerify, blake2AsHex, blake2AsU8a } = require('@polkadot/util-crypto');
 const sha256 = require('js-sha256');
 const { getDIDDetails, getDidKeyHistory, isDidValidator } = require('./did');
 const { buildConnection } = require('./connection.js');
 const { doesSchemaExist } = require('./schema.js');
 const { sanitiseDid } = require('./did');
+const did = require('../src/did.js');
+const utils = require('../src/utils');
+
+
+/** Encodes Token VC and pads with appropriate bytes
+ * @param  {tokenName,reservableBalance} TokenVC
+ * @returns {String} Token VC Hex String
+ */
+function createTokenVC({ tokenName, reservableBalance }) {
+  let tokenVC = {
+    token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
+    reservable_balance: utils.encodeData(reservableBalance, 'Balance'),
+  };
+  return utils.encodeData(tokenVC, 'TokenVC')
+    .padEnd((utils.TOKEN_VC_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
+}
+
 
 /**
- * The function returns the VC in the expected format, the verifier and
- * signature fields are left blank to be filled by signing function
- * @param {token_name: String, reservable_balance: Number} tokenVC
- * @param {did} String
- *
- * @returns {JSON}
+ * @param  {tokenName,reservableBalance} TokenVC
+ * @param  {String} owner Did
+ * @param  {String[]} issuers Array of Did
+ * @param  {KeyPair} sigKeypair Owner Key Ring pair
+ * @returns {String} VC Hex String
  */
-async function createVC(tokenVC, did, sigKeypair) {
-  const hash = u8aToHex(sha256(stringToU8a(JSON.stringify(tokenVC))));
-  const sign = sigKeypair.sign(hash); 
-  return {
+function createVC(tokenVC, owner, issuers, sigKeypair) {
+  let encodedTokenVC = createTokenVC(tokenVC);
+  const hash = blake2AsHex(encodedTokenVC);
+  const sign = u8aToHex(sigKeypair.sign(hash));
+  let expectedObject = {
     hash,
+    owner: did.sanitiseDid(owner),
+    issuers: issuers.map(issuer => did.sanitiseDid(issuer)),
     signatures: [sign],
-    vc_type: {TokenVC: tokenVC},
-    owner: did,
-    issuers: [did],
-    is_vc_used: true,
-    vc_property: tokenVC,
+    is_vc_used: false,
+    vc_type: "TokenVC",
+    vc_property: encodedTokenVC,
   };
+  return utils.encodeData(expectedObject, 'VC');
 }
 
 /**
- * Sign a VC using the given verifier_pvkey
- * @param {JSON} vcJson
- * @param {String} verifierDid
- * @param {KeyPair} signingKeyPair
- * @returns {JSON}
+ * @param  {tokenName, reservableBalance} TokenVC
+ * @param  {KeyPair} sigKeypair Issuer Key Ring pair
+ * @returns {String} Signature
  */
-async function signVC(vcJson, verifierDid, signingKeyPair) {
-  // check if the hash and the properties are a match
-  const expectedHash = u8aToHex(sha256(stringToU8a(JSON.stringify(vcJson.properties))));
-  if (expectedHash !== vcJson.hash) {
-    throw new Error('Data Mismatch!');
-  }
-
-  // sign the VC
-  const dataToSign = hexToU8a(vcJson.hash);
-  const signedData = signingKeyPair.sign(dataToSign);
-  const resVC = vcJson;
-  resVC.verifier = verifierDid;
-  resVC.signature = u8aToHex(signedData);
-
-  return resVC;
+function signVC(tokenVC, signingKeyPair) {
+  let encodedTokenVC = createTokenVC(tokenVC, 'TokenVC');
+  const hash = blake2AsU8a(encodedTokenVC);
+  const sign = signingKeyPair.sign(hash);
+  return u8aToHex(sign);
 }
 
 /**
@@ -124,7 +130,7 @@ async function verifyVC(vcJson, api = false) {
  * @param {APIPromise} api
  * @returns {hexString}
  */
- async function storeVC(
+async function storeVC(
   vcHex,
   senderAccountKeyPair,
   api = false,
@@ -169,7 +175,7 @@ async function verifyVC(vcJson, api = false) {
  * @param {APIPromise} api
  * @returns {hexString}
  */
- async function addSignature(
+async function addSignature(
   vcId,
   sign,
   senderAccountKeyPair,
@@ -215,7 +221,7 @@ async function verifyVC(vcJson, api = false) {
  * @param {APIPromise} api
  * @returns {hexString}
  */
- async function updateStatus(
+async function updateStatus(
   vcId,
   vcStatus,
   senderAccountKeyPair,
@@ -259,7 +265,7 @@ async function verifyVC(vcJson, api = false) {
  * @param {ApiPromise} api
  * @returns {String} (false if not found)
  */
- async function getVCs(vcId, api = false) {
+async function getVCs(vcId, api = false) {
   const provider = api || (await buildConnection('local'));
   const data = (await provider.query.vc.vCs(vcId)).toHuman();
   return data;
@@ -271,7 +277,7 @@ async function verifyVC(vcJson, api = false) {
  * @param {ApiPromise} api
  * @returns {String} (false if not found)
  */
- async function getVCIdsByDID(did, api = false) {
+async function getVCIdsByDID(did, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
   const data = (await provider.query.vc.lookup(did_hex)).toHuman();
@@ -284,7 +290,7 @@ async function verifyVC(vcJson, api = false) {
  * @param {ApiPromise} api
  * @returns {String} (false if not found)
  */
- async function getDIDByVCId(vcId, api = false) {
+async function getDIDByVCId(vcId, api = false) {
   const provider = api || (await buildConnection('local'));
   const data = (await provider.query.vc.rLookup(vcId)).toHuman();
   return data;
@@ -296,15 +302,16 @@ async function verifyVC(vcJson, api = false) {
  * @param {ApiPromise} api
  * @returns {String} (false if not found)
  */
- async function getVCHistoryByVCId(vcId, api = false) {
+async function getVCHistoryByVCId(vcId, api = false) {
   const provider = api || (await buildConnection('local'));
   const data = (await provider.query.vc.vCHistory(vcId)).toHuman();
   return data;
 }
 
 module.exports = {
-  // createVC,
-  // signVC,
+  createTokenVC,
+  createVC,
+  signVC,
   // verifyVC,
   doesSchemaExist,
   storeVC,

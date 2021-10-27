@@ -67,36 +67,26 @@ const bytesToHex = (inputBytes) => u8aToHex(inputBytes);
 const hexToBytes = (inputString) => hexToU8a(inputString);
 const base58ToBytes = (bs58string) => base58Decode(bs58string);
 const hexToString = (hexString) => polkadotHextoString(hexString).replace(/^\0+/, '').replace(/\0+$/, '');
-const registry = new types.TypeRegistry();
 
-function encodeObject(object, typeKey) {
-  try {
-    if (Array.isArray(METABLOCKCHAIN_TYPES)) {
-      METABLOCKCHAIN_TYPES.forEach(type => {
-        registry.register(type);
-      });
-    } else {
-      registry.register(METABLOCKCHAIN_TYPES);
-    }
-    return types.createType(registry, typeKey, object).toHex();
-  } catch (e) {
-    throw e;
-  }
+const registry = new types.TypeRegistry();
+registry.register(METABLOCKCHAIN_TYPES);
+
+/** Encodes object/ string of given type to hex
+ * @param  {Object | String} data Object to be encoded
+ * @param  {String} typeKey Key from METABLOCKCHAIN_TYPES which represents type of data
+ * @returns {String} Encoded Hex
+ */
+function encodeData(data, typeKey) {
+  return types.createType(registry, typeKey, data).toHex();
 }
 
+/** Decodes hex of given type to it's corresponding object/value
+ * @param  {String} hexValue Hex String to be decoded
+ * @param  {String} typeKey Key from METABLOCKCHAIN_TYPES which represents type of data
+ * @returns {Object | String} Decoded Object/String
+ */
 function decodeHex(hexValue, typeKey) {
-  try {
-    if (Array.isArray(METABLOCKCHAIN_TYPES)) {
-      METABLOCKCHAIN_TYPES.forEach(type => {
-        registry.register(type);
-      });
-    } else {
-      registry.register(METABLOCKCHAIN_TYPES);
-    }
-    return types.createType(registry, typeKey, hexValue).toJSON();
-  } catch (e) {
-    throw e;
-  }
+  return types.createType(registry, typeKey, hexValue).toJSON();
 }
 
 module.exports = {
@@ -105,6 +95,6 @@ module.exports = {
   hexToBytes,
   base58ToBytes,
   hexToString,
-  encodeObject,
+  encodeData,
   decodeHex,
 };

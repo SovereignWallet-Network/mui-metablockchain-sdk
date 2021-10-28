@@ -37,18 +37,25 @@ const METABLOCKCHAIN_TYPES = {
   },
   "VCType": {
     "_enum": [
-      "TokenVC"
+      "TokenVC",
+      "SlashTokens",
+      "MintTokens"
     ]
   },
   "TokenVC": {
     "token_name": "token_bytes",
     "reservable_balance": "u128"
   },
+  "SlashMintTokens": {
+    "vc_id": "VCid",
+    "currency_id": "CurrencyId",
+    "amount": "u128"
+  },
   "VCHash": "Vec<u8>",
   "VCStatus": {
     "_enum": [
-    "Active",
-    "Inactive"
+      "Active",
+      "Inactive"
     ]
   },
   "VCid": "[u8;32]",

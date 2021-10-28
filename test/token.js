@@ -94,7 +94,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Mint Token works correctly', async () => {
-      const transaction = await token.mintToken(vcId, currencyId, '100000', sigKeypairBob, provider);
+      const transaction = await token.mintToken(vcId, sigKeypairBob, provider);
       assert.doesNotReject(transaction);
     });
 
@@ -104,12 +104,12 @@ describe('Token Module works correctly', () => {
     });
 
     it('Withdraw from treasury works correctly', async () => {
-      const data = await token.withdrawTreasuryReserve(vcId, 'did:ssid:swn', TEST_DID, '10000', sigKeypairBob, provider);
+      const data = await token.withdrawTreasuryReserve('did:ssid:swn', TEST_DID, '10000', sigKeypairBob, provider);
       assert.doesNotReject(data);
     });
 
     it('Slash Token works correctly', async () => {
-      const transaction = await token.slashToken(vcId, currencyId, '100000', sigKeypairBob, provider);
+      const transaction = await token.slashToken(vcId, sigKeypairBob, provider);
       assert.doesNotReject(transaction);
     });
 
@@ -119,7 +119,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Token transfer works correctly', async () => {
-      const transaction = await token.transferToken(vcId, 'did:ssid:swn', currencyId, '10000', sigKeypairBob, provider);
+      const transaction = await token.transferToken('did:ssid:swn', currencyId, '10000', sigKeypairBob, provider);
       assert.doesNotReject(transaction);
     });
 
@@ -129,7 +129,7 @@ describe('Token Module works correctly', () => {
     })
 
     it('Token transfer all works correctly', async () => {
-      const transaction = await token.transferAll(vcId, 'did:ssid:swn', currencyId, sigKeypairBob, provider);
+      const transaction = await token.transferAll('did:ssid:swn', currencyId, sigKeypairBob, provider);
       assert.doesNotReject(transaction);
     });
 

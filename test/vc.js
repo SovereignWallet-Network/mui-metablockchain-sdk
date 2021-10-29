@@ -1,6 +1,7 @@
 const assert = require('assert');
 const vc = require('../src/vc.js');
 const did = require('../src/did.js');
+const collective = require('../src/collective.js');
 const tx = require('../src/transaction.js');
 const { initKeyring } = require('../src/config');
 const { buildConnection } = require('../src/connection.js');
@@ -8,6 +9,7 @@ const constants = require('./test_constants');
 const utils = require('../src/utils');
 const { hexToU8a } = require('@polkadot/util');
 const { signatureVerify, blake2AsU8a } = require('@polkadot/util-crypto');
+const { removeDid, storeVC } = require('./helper/helper.js');
 
 describe('VC works correctly', () => {
   let sigKeypair = null;
@@ -17,8 +19,11 @@ describe('VC works correctly', () => {
   let keyring;
   let sigKeypairBob;
   let signKeypairEve;
+  let signKeypairDave;
   let actualHex;
   let eveSign;
+  const TEST_DAVE_DID = "did:ssid:dave";
+  const TEST_SWN_DID = "did:ssid:swn";
 
   before(async () => {
     keyring = await initKeyring();
@@ -26,6 +31,7 @@ describe('VC works correctly', () => {
     provider = await buildConnection(constants.providerNetwork);
     sigKeypairBob = await keyring.addFromUri('//Bob');
     signKeypairEve = await keyring.addFromUri('//Eve');
+    signKeypairDave = await keyring.addFromUri('//Dave');
   });
 
   it('VC is created in correct format', async () => {
@@ -38,7 +44,7 @@ describe('VC works correctly', () => {
       "did:ssid:swn",
       "did:ssid:eve",
     ];
-    actualHex = vc.createVC(tokenVC, owner, issuers, sigKeypairBob);
+    actualHex = vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     let actualObject = utils.decodeHex(actualHex, 'VC');
     let expectedObject = {
       hash: '0x8fcc460fd98b54c132cdcaed7d6d8a6026b42c8a39b916635738293e39246e91',
@@ -91,7 +97,7 @@ describe('VC works correctly', () => {
     })
 
     it('Store VC works correctly', async () => {
-      const transaction = await vc.storeVC(actualHex, sigKeypairBob, provider);
+      const transaction = await storeVC(actualHex, sigKeypairBob, sigKeypair, signKeypairDave, provider);
       assert.doesNotReject(transaction);
     });
 
@@ -150,24 +156,11 @@ describe('VC works correctly', () => {
   after(async () => {
     // Delete created DIDs
     if (constants.providerNetwork == 'local') {
-      await removeDid(TEST_DID, sigKeypair, provider);
-      await removeDid(EVE_DID, sigKeypair, provider);
+      try {
+        await removeDid(TEST_DID, sigKeypair, provider);
+        await removeDid(EVE_DID, sigKeypair, provider);
+        await removeDid(TEST_DAVE_DID, sigKeypair, provider);
+      } catch(err) {}
     }
-  })
-
-  // To remove DID after testing
-  async function removeDid(didString, sig_key_pair, provider) {
-    try {
-      const tx = provider.tx.did.remove(did.sanitiseDid(didString));
-      await new Promise((resolve, reject) => tx.signAndSend(sig_key_pair, ({ status, dispatchError }) => {
-        if (dispatchError) {
-          reject('Dispatch error');
-        } else if (status.isFinalized) {
-          resolve(status.asFinalized.toHex());
-        }
-      }));
-    } catch (err) {
-      throw new Error(err);
-    }
-  }
+  });
 });

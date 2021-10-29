@@ -37,18 +37,25 @@ const METABLOCKCHAIN_TYPES = {
   },
   "VCType": {
     "_enum": [
-      "TokenVC"
+      "TokenVC",
+      "SlashTokens",
+      "MintTokens"
     ]
   },
   "TokenVC": {
     "token_name": "token_bytes",
     "reservable_balance": "u128"
   },
+  "SlashMintTokens": {
+    "vc_id": "VCid",
+    "currency_id": "CurrencyId",
+    "amount": "u128"
+  },
   "VCHash": "Vec<u8>",
   "VCStatus": {
     "_enum": [
-    "Active",
-    "Inactive"
+      "Active",
+      "Inactive"
     ]
   },
   "VCid": "[u8;32]",
@@ -64,7 +71,7 @@ const METABLOCKCHAIN_TYPES = {
 }
 
 const TOKEN_NAME_BYTES = 16;
-const TOKEN_VC_BYTES = 128;
+const VC_PROPERTY_BYTES = 128;
 
 const bytesToHex = (inputBytes) => u8aToHex(inputBytes);
 const hexToBytes = (inputString) => hexToU8a(inputString);
@@ -95,7 +102,7 @@ function decodeHex(hexValue, typeKey) {
 module.exports = {
   METABLOCKCHAIN_TYPES,
   TOKEN_NAME_BYTES,
-  TOKEN_VC_BYTES,
+  VC_PROPERTY_BYTES,
   bytesToHex,
   hexToBytes,
   base58ToBytes,

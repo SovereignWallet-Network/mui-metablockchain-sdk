@@ -7,6 +7,7 @@ const { hexToString } = require('../src/utils');
 const {
   mnemonicValidate,
 } = require('@polkadot/util-crypto');
+const { removeDid } = require('./helper/helper.js');
 
 describe('DID Module works correctly', () => {
   const TEST_MNEMONIC =
@@ -45,7 +46,7 @@ describe('DID Module works correctly', () => {
     );
     assert.strictEqual(
       data.identifier,
-      '0x6469643a737369643a73776e0000000000000000000000000000000000000000'
+      did.sanitiseDid('did:ssid:swn')
     );
     assert.strictEqual(data.added_block, 0);
   });
@@ -64,7 +65,7 @@ describe('DID Module works correctly', () => {
     );
     assert.strictEqual(
       data,
-      '0x6469643a737369643a73776e0000000000000000000000000000000000000000'
+      did.sanitiseDid('did:ssid:swn')
     );
 
     // return false for non existent did - this accountid is not expected to have a DID
@@ -78,7 +79,7 @@ describe('DID Module works correctly', () => {
   it('Resolve DID to account at block number 0 works correctly', async () => {
     const data = await did.resolveDIDToAccount('did:ssid:swn', provider, 0);
     // Alice's DID is created at block number 0
-    assert.strictEqual(data, null);
+    assert.strictEqual(data, '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY');
   });
 
   it('isDidValidator works correctly', async () => {
@@ -120,7 +121,7 @@ describe('DID Module works correctly', () => {
     const hex_did = did.sanitiseDid('did:ssid:swn');
     assert.strictEqual(
       hex_did,
-      '0x6469643a737369643a73776e0000000000000000000000000000000000000000'
+      did.sanitiseDid('did:ssid:swn')
     );
   });
 
@@ -200,9 +201,11 @@ describe('DID Module works correctly', () => {
     });
 
     it('Resolve DID to account after did created works correctly', async () => {
-      // const creatAccBlockNumAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum);
+      // const prevAccBlockNumAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum-1);
+      const creatAccBlockNumAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum);
       const nextBlockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum+1);
-      // assert.strictEqual(creatAccBlockNumAcc, null);
+      // assert.strictEqual(prevAccBlockNumAcc, null);
+      assert.strictEqual(creatAccBlockNumAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
       assert.strictEqual(nextBlockNumberAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
     });
 
@@ -211,7 +214,7 @@ describe('DID Module works correctly', () => {
       const keyUpdateBlockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, updatedKeyBlockNum);
       const nextblockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, updatedKeyBlockNum+1);
       assert.strictEqual(prevBlockNumberAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
-      assert.strictEqual(keyUpdateBlockNumberAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
+      assert.strictEqual(keyUpdateBlockNumberAcc, '5CA8uxffSzq2JyXVKXBudbgC3zBkQGzH2WUUf8ogBiJzxvFJ');
       assert.strictEqual(nextblockNumberAcc, '5CA8uxffSzq2JyXVKXBudbgC3zBkQGzH2WUUf8ogBiJzxvFJ');
     });
   }
@@ -223,20 +226,4 @@ describe('DID Module works correctly', () => {
       await removeDid('did:ssid:rocket', sigKeypairWithBal, provider);
     }
   })
-
-  // To remove DID after testing
-  async function removeDid(didString, sig_key_pair, provider) {
-    try {
-      const tx = provider.tx.did.remove(did.sanitiseDid(didString));
-      await new Promise((resolve, reject) => tx.signAndSend(sig_key_pair, ({ status, dispatchError }) => {
-        if (dispatchError) {
-          reject('Dispatch error');
-        } else if (status.isFinalized) {
-          resolve(status.asFinalized.toHex());
-        }
-      }));
-    } catch (err) {
-      throw new Error(err);
-    }
-  }
 });

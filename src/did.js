@@ -129,14 +129,14 @@ async function resolveDIDToAccount(identifier, api = false, blockNumber = null) 
     return (await provider.query.did.lookup(did_hex)).toHuman();
   }
   const didDetails = await getDIDDetails(identifier, provider);
-  if(blockNumber > didDetails.added_block) {
+  if(blockNumber >= didDetails.added_block) {
     return (await provider.query.did.lookup(did_hex)).toHuman();
   }
   const keyHistories = await getDidKeyHistory(identifier, provider);
   if(!keyHistories) {
     return null;
   }
-  const keyIndex = keyHistories.reverse().findIndex((value) => blockNumber > parseInt(value[1]));
+  const keyIndex = keyHistories.reverse().findIndex((value) => blockNumber >= parseInt(value[1]));
   if(keyIndex < 0) {
     return null;
   }

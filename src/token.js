@@ -58,7 +58,6 @@ async function issueToken(
 
 /**
  * Transfer token with given token_id to the recipent_did
- * @param {String} vcId
  * @param {String} recipentDid
  * @param {String} currencyId
  * @param {String} tokenAmount
@@ -67,7 +66,6 @@ async function issueToken(
  * @returns {hexString}
  */
  async function transferToken(
-  vcId,
   recipentDid,
   currencyId,
   tokenAmount,
@@ -82,7 +80,7 @@ async function issueToken(
       if (!receiverAccountID) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
-      const tx = provider.tx.tokens.transfer(vcId, receiverAccountID, currencyId, tokenAmount);
+      const tx = provider.tx.tokens.transfer(receiverAccountID, currencyId, tokenAmount);
       await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
@@ -111,7 +109,6 @@ async function issueToken(
 
 /**
  * Transfer all token with given vc_id to the recipent_did
- * @param {String} vcId
  * @param {String} recipentDid
  * @param {String} currencyId
  * @param {KeyringObj} senderAccountKeyPair
@@ -119,7 +116,6 @@ async function issueToken(
  * @returns {hexString}
  */
  async function transferAll(
-  vcId,
   recipentDid,
   currencyId,
   senderAccountKeyPair,
@@ -133,7 +129,7 @@ async function issueToken(
       if (!receiverAccountID) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
-      const tx = provider.tx.tokens.transferAll(vcId, receiverAccountID, currencyId);
+      const tx = provider.tx.tokens.transferAll(receiverAccountID, currencyId);
       await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
@@ -163,23 +159,19 @@ async function issueToken(
 /**
  * Slash token from given currency
  * @param {String} vcId
- * @param {String} currencyId
- * @param {Number} tokenAmount
  * @param {KeyringObj} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
  async function slashToken(
   vcId,
-  currencyId,
-  tokenAmount,
   senderAccountKeyPair,
   api = false,
 ) {
   return new Promise(async (resolve, reject) => {
     try {
       const provider = api || (await buildConnection('local'));
-      const tx = provider.tx.tokens.slashToken(vcId, currencyId, tokenAmount);
+      const tx = provider.tx.tokens.slashToken(vcId);
       await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
@@ -209,23 +201,19 @@ async function issueToken(
 /**
  * Mint token to given currency
  * @param {String} vcId
- * @param {String} currencyId
- * @param {Number} tokenAmount
  * @param {KeyringObj} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
 async function mintToken(
   vcId,
-  currencyId,
-  tokenAmount,
   senderAccountKeyPair,
   api = false,
 ) {
   return new Promise(async (resolve, reject) => {
     try {
       const provider = api || (await buildConnection('local'));
-      const tx = provider.tx.tokens.mintToken(vcId, currencyId, tokenAmount);
+      const tx = provider.tx.tokens.mintToken(vcId);
       await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
@@ -335,7 +323,6 @@ async function getTokenTotalSupply(currencyId, api = false) {
 /**
  * Function to withdraw the treasury reserve amount locked at the time of
  * token creation. Only a validator can call this operation succesfully.
- * @param {String} vcId
  * @param {String} destination (DID)
  * @param {String} from (DID)
  * @param {String} amount (MUI amount)
@@ -344,7 +331,6 @@ async function getTokenTotalSupply(currencyId, api = false) {
  * @returns {String} transaction_hex_id
  */
 async function withdrawTreasuryReserve(
-  vcId,
   destination,
   from,
   amount,
@@ -362,7 +348,7 @@ async function withdrawTreasuryReserve(
       if (!toAccountId) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
-      const tx = provider.tx.tokens.withdrawReserved(vcId, toAccountId, fromAccountId, amount);
+      const tx = provider.tx.tokens.withdrawReserved(toAccountId, fromAccountId, amount);
       await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
         console.log('Transaction status:', status.type);
         if (dispatchError) {

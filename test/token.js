@@ -9,7 +9,7 @@ const constants = require('./test_constants');
 const { expect } = require('chai');
 const did = require('../src/did');
 const { hexToString } = require('../src/utils');
-const { removeDid } = require('./helper/helper');
+const { removeDid, storeVC, storeMintSlashVC } = require('./helper/helper');
 
 describe('Token Module works correctly', () => {
   let sigKeypairRoot = null;
@@ -57,7 +57,7 @@ describe('Token Module works correctly', () => {
           TEST_META_DID,
         ];
         const vcHex = vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairMeta);
-        await storeVC(vcHex, sigKeypairMeta, sigKeypairRoot, signKeypairOrgA);
+        await storeVC(vcHex, sigKeypairMeta, sigKeypairRoot, signKeypairOrgA, provider);
         vcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[0];
       }
     });
@@ -109,7 +109,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Mint Token works correctly', async () => {
-      await storeMintSlashVC(vcId, currencyId, 1000000, "MintTokens", signKeypairOrgA);
+      await storeMintSlashVC(vcId, currencyId, 1000000, "MintTokens", signKeypairOrgA, provider);
       let mintVcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[1];
       const transaction = await token.mintToken(mintVcId, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
@@ -126,7 +126,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Slash Token works correctly', async () => {
-      await storeMintSlashVC(vcId, currencyId, 1000000, "SlashTokens", signKeypairOrgA);
+      await storeMintSlashVC(vcId, currencyId, 1000000, "SlashTokens", signKeypairOrgA, provider);
       let slashVcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[2];
       const transaction = await token.slashToken(slashVcId, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
@@ -170,47 +170,5 @@ describe('Token Module works correctly', () => {
       await removeDid(TEST_META_DID, sigKeypairRoot, provider);
       await removeDid(TEST_ORG_A_DID, sigKeypairRoot, provider);
     }
-  })
-
-  async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil) {
-    try {
-      const didObjDave = {
-        public_key: sigKeypairCouncil.publicKey, // this is the public key linked to the did
-        identity: TEST_ORG_A_DID, // this is the actual did
-        metadata: 'Metadata',
-      };
-      await did.storeDIDOnChain(didObjDave, sigKeypairRoot, provider);
-    } catch (err) {}
-    let nonce = await provider.rpc.system.accountNextIndex(sigKeypairRoot.address);
-    await tx.sendTransaction(sigKeypairRoot, TEST_ORG_A_DID, '5000000', provider, nonce);
-    let newMembers = [
-      TEST_ORG_A_DID,
-      TEST_META_DID,
-      TEST_SWN_DID,
-    ];
-    await collective.setMembers(newMembers, TEST_SWN_DID, 0, sigKeypairRoot, provider);
-    const call = provider.tx.vc.store(vcHex);
-    await collective.propose(3, call, 1000, sigKeypairOwner, provider);
-    const actualProposals = await collective.getProposals(provider);
-    proposalHash = actualProposals[0];
-    let vote = await collective.getVotes(proposalHash, provider);
-    index = vote.index;
-    await collective.vote(proposalHash, index, true, sigKeypairRoot, provider);
-    await collective.vote(proposalHash, index, true, sigKeypairCouncil, provider);
-    await collective.close(proposalHash, index, 1000, 1000, sigKeypairRoot, provider);
-  }
-
-  async function storeMintSlashVC(vcId, currencyId, amount, vcType, sigKeypairOwner) {
-    let vcProperty = {
-      vcId,
-      currencyId,
-      amount,
-    };
-    let owner = TEST_ORG_A_DID;
-    let issuers = [
-      TEST_ORG_A_DID,
-    ];
-    let vcHex = vc.createVC(vcProperty, owner, issuers, vcType, sigKeypairOwner);
-    await vc.storeVC(vcHex, sigKeypairOwner, provider)
-  }
+  });
 });

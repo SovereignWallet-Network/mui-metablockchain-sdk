@@ -32,8 +32,9 @@ async function removeDid(didString, sigKeyPair, provider) {
  * @param  {KeyPair} sigKeypairOwner
  * @param  {KeyPair} sigKeypairRoot
  * @param  {KeyPair} sigKeypairCouncil
+ * @param  {Api} provider
  */
-async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil) {
+async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil, provider) {
   try {
     const didObjDave = {
       public_key: sigKeypairCouncil.publicKey, // this is the public key linked to the did
@@ -41,7 +42,7 @@ async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil
       metadata: 'Metadata',
     };
     await did.storeDIDOnChain(didObjDave, sigKeypairRoot, provider);
-  } catch (err) {}
+  } catch (err) { }
   let nonce = await provider.rpc.system.accountNextIndex(sigKeypairRoot.address);
   await tx.sendTransaction(sigKeypairRoot, TEST_DAVE_DID, '5000000', provider, nonce);
   let newMembers = [
@@ -68,8 +69,9 @@ async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil
  * @param  {KeyPair} sigKeypairOwner
  * @param  {KeyPair} sigKeypairRoot
  * @param  {KeyPair} sigKeypairCouncil
+ * @param  {Api} provider
  */
-async function storeMintSlashVC(vcId, currencyId, amount, vcType, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil) {
+async function storeMintSlashVC(vcId, currencyId, amount, vcType, sigKeypairOwner, provider) {
   let vcProperty = {
     vcId,
     currencyId,
@@ -77,11 +79,10 @@ async function storeMintSlashVC(vcId, currencyId, amount, vcType, sigKeypairOwne
   };
   let owner = TEST_DAVE_DID;
   let issuers = [
-    TEST_SWN_DID,
-    TEST_DID,
+    TEST_DAVE_DID,
   ];
   let vcHex = vc.createVC(vcProperty, owner, issuers, vcType, sigKeypairOwner);
-  await storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil)
+  await vc.storeVC(vcHex, sigKeypairOwner, provider)
 }
 
 module.exports = {

@@ -9,7 +9,7 @@ const constants = require('./test_constants');
 const utils = require('../src/utils');
 const { hexToU8a } = require('@polkadot/util');
 const { signatureVerify, blake2AsU8a } = require('@polkadot/util-crypto');
-const { removeDid } = require('./helper/helper.js');
+const { removeDid, storeVC } = require('./helper/helper.js');
 
 describe('VC works correctly', () => {
   let sigKeypair = null;
@@ -97,7 +97,7 @@ describe('VC works correctly', () => {
     })
 
     it('Store VC works correctly', async () => {
-      const transaction = await storeVC(actualHex, sigKeypairBob);
+      const transaction = await storeVC(actualHex, sigKeypairBob, sigKeypair, signKeypairDave, provider);
       assert.doesNotReject(transaction);
     });
 
@@ -162,33 +162,5 @@ describe('VC works correctly', () => {
         await removeDid(TEST_DAVE_DID, sigKeypair, provider);
       } catch(err) {}
     }
-  })
-
-  async function storeVC(vcHex, sigKeypairOwner) {
-    try {
-      const didObjDave = {
-        public_key: signKeypairDave.publicKey, // this is the public key linked to the did
-        identity: TEST_DAVE_DID, // this is the actual did
-        metadata: 'Metadata',
-      };
-      await did.storeDIDOnChain(didObjDave, sigKeypair, provider);
-    } catch (err) {}
-    let nonce = await provider.rpc.system.accountNextIndex(sigKeypair.address);
-    await tx.sendTransaction(sigKeypair, TEST_DAVE_DID, '5000000', provider, nonce);
-    let newMembers = [
-      TEST_DAVE_DID,
-      TEST_DID,
-      TEST_SWN_DID,
-    ];
-    await collective.setMembers(newMembers, TEST_SWN_DID, 0, sigKeypair, provider);
-    const call = provider.tx.vc.store(vcHex);
-    await collective.propose(3, call, 1000, sigKeypairOwner, provider);
-    const actualProposals = await collective.getProposals(provider);
-    proposalHash = actualProposals[0];
-    let vote = await collective.getVotes(proposalHash, provider);
-    index = vote.index;
-    await collective.vote(proposalHash, index, true, sigKeypair, provider);
-    await collective.vote(proposalHash, index, true, signKeypairDave, provider);
-    await collective.close(proposalHash, index, 1000, 1000, sigKeypair, provider);
-  }
+  });
 });

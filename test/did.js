@@ -79,7 +79,7 @@ describe('DID Module works correctly', () => {
   it('Resolve DID to account at block number 0 works correctly', async () => {
     const data = await did.resolveDIDToAccount('did:ssid:swn', provider, 0);
     // Alice's DID is created at block number 0
-    assert.strictEqual(data, null);
+    assert.strictEqual(data, '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY');
   });
 
   it('isDidValidator works correctly', async () => {
@@ -201,9 +201,11 @@ describe('DID Module works correctly', () => {
     });
 
     it('Resolve DID to account after did created works correctly', async () => {
-      // const creatAccBlockNumAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum);
+      // const prevAccBlockNumAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum-1);
+      const creatAccBlockNumAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum);
       const nextBlockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, addedDidBlockNum+1);
-      // assert.strictEqual(creatAccBlockNumAcc, null);
+      // assert.strictEqual(prevAccBlockNumAcc, null);
+      assert.strictEqual(creatAccBlockNumAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
       assert.strictEqual(nextBlockNumberAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
     });
 
@@ -212,7 +214,7 @@ describe('DID Module works correctly', () => {
       const keyUpdateBlockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, updatedKeyBlockNum);
       const nextblockNumberAcc = await did.resolveDIDToAccount(testIdentifier, provider, updatedKeyBlockNum+1);
       assert.strictEqual(prevBlockNumberAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
-      assert.strictEqual(keyUpdateBlockNumberAcc, '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2');
+      assert.strictEqual(keyUpdateBlockNumberAcc, '5CA8uxffSzq2JyXVKXBudbgC3zBkQGzH2WUUf8ogBiJzxvFJ');
       assert.strictEqual(nextblockNumberAcc, '5CA8uxffSzq2JyXVKXBudbgC3zBkQGzH2WUUf8ogBiJzxvFJ');
     });
   }

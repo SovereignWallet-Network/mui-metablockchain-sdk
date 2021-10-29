@@ -71,7 +71,7 @@ const METABLOCKCHAIN_TYPES = {
 }
 
 const TOKEN_NAME_BYTES = 16;
-const TOKEN_VC_BYTES = 128;
+const VC_PROPERTY_BYTES = 128;
 
 const bytesToHex = (inputBytes) => u8aToHex(inputBytes);
 const hexToBytes = (inputString) => hexToU8a(inputString);
@@ -102,7 +102,7 @@ function decodeHex(hexValue, typeKey) {
 module.exports = {
   METABLOCKCHAIN_TYPES,
   TOKEN_NAME_BYTES,
-  TOKEN_VC_BYTES,
+  VC_PROPERTY_BYTES,
   bytesToHex,
   hexToBytes,
   base58ToBytes,

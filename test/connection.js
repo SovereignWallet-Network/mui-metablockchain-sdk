@@ -9,7 +9,7 @@ describe('Connection module works correctly', () => {
     //Create two websocket connections, a new connections should be created only once
     //check for console log of new websocket being created - maybe there is a better way to test this?
     const spy = sinon.spy(console, 'log');
-    const ws1 = await buildConnection(providerNetwork);
+    const ws1 = await buildConnection(providerNetwork, true);
     const ws2 = await buildConnection(providerNetwork);
     assert(spy.calledWith('Creating new websocket connection!'));
     sinon.assert.calledOnce(spy);

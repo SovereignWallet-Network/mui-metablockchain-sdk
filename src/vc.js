@@ -30,40 +30,65 @@ const utils = require('../src/utils');
 
 
 /** Encodes Token VC and pads with appropriate bytes
- * @param  {tokenName,reservableBalance} TokenVC
+ * @param  {tokenName, reservableBalance} vcProperty
  * @returns {String} Token VC Hex String
  */
 function createTokenVC({ tokenName, reservableBalance }) {
-  let tokenVC = {
+  let vcProperty = {
     token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
     reservable_balance: utils.encodeData(reservableBalance, 'Balance'),
   };
-  return utils.encodeData(tokenVC, 'TokenVC')
-    .padEnd((utils.TOKEN_VC_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
+  return utils.encodeData(vcProperty, 'TokenVC')
+    .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
+}
+
+/** Encodes Token VC and pads with appropriate bytes
+ * @param  {vcId: String, currencyId: Number, amount: Number} vcProperty
+ * @returns {String} Token VC Hex String
+ */
+ function createMintSlashVC({ vcId, currencyId, amount }) {
+  let vcProperty = {
+    vc_id: vcId,
+    currency_id: utils.encodeData(currencyId, 'CurrencyId'),
+    amount: utils.encodeData(amount, 'Balance'),
+  };
+  return utils.encodeData(vcProperty, 'SlashMintTokens')
+    .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
 }
 
 
 /**
- * @param  {tokenName,reservableBalance} TokenVC
+ * @param  {tokenName,reservableBalance} vcProperty
  * @param  {String} owner Did
  * @param  {String[]} issuers Array of Did
  * @param  {KeyPair} sigKeypair Owner Key Ring pair
  * @returns {String} VC Hex String
  */
-function createVC(tokenVC, owner, issuers, sigKeypair) {
-  let encodedTokenVC = createTokenVC(tokenVC);
-  const hash = blake2AsHex(encodedTokenVC);
+function createVC(vcProperty, owner, issuers, vcType, sigKeypair) {
+  let encodedVCProperty;
+  switch (vcType) {
+    case "TokenVC":
+      encodedVCProperty = createTokenVC(vcProperty);
+      break;
+    case "MintTokens":
+    case "SlashTokens":
+      encodedVCProperty = createMintSlashVC(vcProperty);
+      break;
+    default:
+      throw new Error("Unknown VC Type");
+  }
+  const hash = blake2AsHex(encodedVCProperty);
   const sign = u8aToHex(sigKeypair.sign(hash));
-  let expectedObject = {
+  let vcObject = {
     hash,
     owner: did.sanitiseDid(owner),
     issuers: issuers.map(issuer => did.sanitiseDid(issuer)),
     signatures: [sign],
     is_vc_used: false,
-    vc_type: "TokenVC",
-    vc_property: encodedTokenVC,
+    vc_type: vcType,
+    vc_property: encodedVCProperty,
   };
-  return utils.encodeData(expectedObject, 'VC');
+  return utils.encodeData(vcObject, 'VC');
 }
 
 /**
@@ -275,7 +300,7 @@ async function getVCs(vcId, api = false) {
  * Get VC Ids by did
  * @param {String} did (hex/base64 version works)
  * @param {ApiPromise} api
- * @returns {String} (false if not found)
+ * @returns {String} (false if not found) 
  */
 async function getVCIdsByDID(did, api = false) {
   const provider = api || (await buildConnection('local'));

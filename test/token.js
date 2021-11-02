@@ -83,7 +83,7 @@ describe('Token Module works correctly', () => {
 
     it('Get Token Balance works correctly', async () => {
       let balance = await token.getTokenBalance(TEST_ORG_A_DID, currencyId, provider);
-      assert.strictEqual(balance, '10.0000 MUI');
+      assert.strictEqual(balance, 10);
     });
 
     it('Get Token Name from currency id works correctly', async () => {
@@ -94,7 +94,7 @@ describe('Token Module works correctly', () => {
 
     it('Get tokens total supply works correctly', async () => {
       let tokensSupply = await token.getTokenTotalSupply(currencyId, provider);
-      assert.strictEqual(tokensSupply, '10.0000 MUI');
+      assert.strictEqual(tokensSupply, 10);
     });
 
     it('Get locks works correctly', async () => {
@@ -117,11 +117,11 @@ describe('Token Module works correctly', () => {
 
     it('Get Token Balance after mint token works correctly', async () => {
       let balance = await token.getTokenBalance(TEST_ORG_A_DID, currencyId, provider);
-      assert.strictEqual(balance, '11.0000 MUI');
+      assert.strictEqual(balance, 11);
     });
 
     it('Withdraw from treasury works correctly', async () => {
-      const data = await token.withdrawTreasuryReserve(TEST_SWN_DID, TEST_META_DID, '10000', sigKeypairMeta, provider);
+      const data = await token.withdrawTreasuryReserve(TEST_SWN_DID, TEST_META_DID, 10000, sigKeypairMeta, provider);
       assert.doesNotReject(data);
     });
 
@@ -134,17 +134,17 @@ describe('Token Module works correctly', () => {
 
     it('Get Token Balance after slash token works correctly', async () => {
       let balance = await token.getTokenBalance(TEST_ORG_A_DID, currencyId, provider);
-      assert.strictEqual(balance, '10.0000 MUI');
+      assert.strictEqual(balance, 10);
     });
 
     it('Token transfer works correctly', async () => {
-      const transaction = await token.transferToken(TEST_SWN_DID, currencyId, '10000', signKeypairOrgA, provider);
+      const transaction = await token.transferToken(TEST_SWN_DID, currencyId, 10000, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
     });
 
     it('Get Token Balance after transfer works correctly', async () => {
       let balance = await token.getTokenBalance(TEST_SWN_DID, currencyId, provider);
-      assert.strictEqual(balance, '10.0000 mMUI');
+      assert.strictEqual(balance, 0.01);
     })
 
     it('Token transfer all works correctly', async () => {
@@ -154,12 +154,12 @@ describe('Token Module works correctly', () => {
 
     it('Get Token Balance after transfer all works correctly', async () => {
       let balance = await token.getTokenBalance(TEST_SWN_DID, currencyId, provider);
-      assert.strictEqual(balance, '10.0000 MUI');
+      assert.strictEqual(balance, 10);
     });
 
     it('Tokens total supply is unchanged', async () => {
       let tokensSupply = await token.getTokenTotalSupply(currencyId, provider);
-      assert.strictEqual(tokensSupply, '10.0000 MUI');
+      assert.strictEqual(tokensSupply, 10);
     });
   }
 

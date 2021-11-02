@@ -39,19 +39,19 @@ describe('VC works correctly', () => {
       tokenName: 'test',
       reservableBalance: 1000,
     };
-    let owner = "did:ssid:rocket";
+    let owner = TEST_DID;
     let issuers = [
-      "did:ssid:swn",
-      "did:ssid:eve",
+      TEST_SWN_DID,
+      EVE_DID,
     ];
     actualHex = vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     let actualObject = utils.decodeHex(actualHex, 'VC');
     let expectedObject = {
       hash: '0x8fcc460fd98b54c132cdcaed7d6d8a6026b42c8a39b916635738293e39246e91',
-      owner: did.sanitiseDid("did:ssid:rocket"),
+      owner: did.sanitiseDid(TEST_DID),
       issuers: [
-        did.sanitiseDid("did:ssid:swn"),
-        did.sanitiseDid("did:ssid:eve")
+        did.sanitiseDid(TEST_SWN_DID),
+        did.sanitiseDid(EVE_DID)
       ],
       signatures: [''],
       is_vc_used: false,

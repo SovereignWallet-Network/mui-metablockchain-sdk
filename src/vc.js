@@ -30,7 +30,7 @@ const utils = require('../src/utils');
 
 
 /** Encodes Token VC and pads with appropriate bytes
- * @param  {tokenName, reservableBalance} vcProperty
+ * @param  {tokenName: String, reservableBalance: Number} vcProperty reservableBalance: In Lowest Form
  * @returns {String} Token VC Hex String
  */
 function createTokenVC({ tokenName, reservableBalance }) {
@@ -43,7 +43,7 @@ function createTokenVC({ tokenName, reservableBalance }) {
 }
 
 /** Encodes Token VC and pads with appropriate bytes
- * @param  {vcId: String, currencyId: Number, amount: Number} vcProperty
+ * @param  {vcId: String, currencyId: Number, amount: Number} vcProperty amount: In Lowest Form
  * @returns {String} Token VC Hex String
  */
  function createMintSlashVC({ vcId, currencyId, amount }) {
@@ -58,7 +58,7 @@ function createTokenVC({ tokenName, reservableBalance }) {
 
 
 /**
- * @param  {tokenName,reservableBalance} vcProperty
+ * @param  {Object} vcProperty
  * @param  {String} owner Did
  * @param  {String[]} issuers Array of Did
  * @param  {KeyPair} sigKeypair Owner Key Ring pair
@@ -92,7 +92,7 @@ function createVC(vcProperty, owner, issuers, vcType, sigKeypair) {
 }
 
 /**
- * @param  {tokenName, reservableBalance} TokenVC
+ * @param  {tokenName: String, reservableBalance: Number} TokenVC reservableBalance: In Lowest Form
  * @param  {KeyPair} sigKeypair Issuer Key Ring pair
  * @returns {String} Signature
  */

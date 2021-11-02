@@ -245,12 +245,12 @@ async function mintToken(
  * @param {String} did
  * @param {String} currencyId
  * @param {ApiPromise} api
- * @returns {String}
+ * @returns {String} Balance In Highest Form
  */
 async function getTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toHuman().free;
+  const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toJSON().free/1e6;
   return data;
 }
 
@@ -284,12 +284,12 @@ async function getTokenList(api = false) {
  * Get the total issuance amount for given currency id
  * @param {String} currencyId
  * @param {ApiPromise} api
- * @returns {String} totalSupply
+ * @returns {String} TotalSupply In Highest Form
  */
 async function getTokenTotalSupply(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const data = await provider.query.tokens.totalIssuance(currencyId);
-  return data.toHuman();
+  return data.toJSON()/1e6;
 }
 
 /**

@@ -8,7 +8,7 @@ const { resolveDIDToAccount } = require('./did.js');
  * is handled in extrinsic, check test/transaction.js
  * @param {KeyringObj} senderAccountKeyPair
  * @param {String} receiverDID
- * @param {String} amount
+ * @param {String} amount In Lowest Form
  * @param {APIPromise} api (optional)
  * @param {int} nonce (optional)
  * @returns {Uint8Array}
@@ -61,7 +61,7 @@ async function sendTransaction(
  * 
  * @param {KeyringObj} senderAccountKeyPair
  * @param {String} receiverDID
- * @param {String} amount
+ * @param {String} amount In Lowest Form
  * @param {String} memo
  * @param {APIPromise} api (optional)
  * @param {int} nonce (optional)

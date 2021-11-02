@@ -25,8 +25,8 @@ function buildNewConnection(network = 'local') {
 
 /**
  * Return an APIPromise object
- * @param {String} network
- * @param {Boolen} ignoreCache (optional) (default=true)
+ * @param {String} network MetaMUI network provider to connect
+ * @param {Boolen=} ignoreCache (optional) (default=true)
  * Note : setting the ignoreCache value to true will create a new ws
  * ws conection on every call
  */

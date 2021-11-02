@@ -18,7 +18,6 @@
  *   "signature" : "The signature of the verifier, verifying the hash"
  * }
  */
-const { stringToU8a, u8aToHex, hexToU8a } = require('@polkadot/util');
 const { signatureVerify, blake2AsHex, blake2AsU8a } = require('@polkadot/util-crypto');
 const sha256 = require('js-sha256');
 const { getDIDDetails, getDidKeyHistory, isDidValidator } = require('./did');
@@ -30,7 +29,9 @@ const utils = require('../src/utils');
 
 
 /** Encodes Token VC and pads with appropriate bytes
- * @param  {tokenName: String, reservableBalance: Number} vcProperty reservableBalance: In Lowest Form
+ * @param  {Object} TokenVC
+ * @param  {String} TokenVC.tokenName 
+ * @param  {String} TokenVC.reservableBalance In Lowest Form
  * @returns {String} Token VC Hex String
  */
 function createTokenVC({ tokenName, reservableBalance }) {
@@ -43,7 +44,9 @@ function createTokenVC({ tokenName, reservableBalance }) {
 }
 
 /** Encodes Token VC and pads with appropriate bytes
- * @param  {vcId: String, currencyId: Number, amount: Number} vcProperty amount: In Lowest Form
+ * @param  {Object} TokenVC
+ * @param  {String} TokenVC.tokenName 
+ * @param  {String} TokenVC.reservableBalance In Lowest Form
  * @returns {String} Token VC Hex String
  */
  function createMintSlashVC({ vcId, currencyId, amount }) {
@@ -58,6 +61,7 @@ function createTokenVC({ tokenName, reservableBalance }) {
 
 
 /**
+ * Create VC
  * @param  {Object} vcProperty
  * @param  {String} owner Did
  * @param  {String[]} issuers Array of Did
@@ -78,7 +82,7 @@ function createVC(vcProperty, owner, issuers, vcType, sigKeypair) {
       throw new Error("Unknown VC Type");
   }
   const hash = blake2AsHex(encodedVCProperty);
-  const sign = u8aToHex(sigKeypair.sign(hash));
+  const sign = utils.bytesToHex(sigKeypair.sign(hash));
   let vcObject = {
     hash,
     owner: did.sanitiseDid(owner),
@@ -92,7 +96,10 @@ function createVC(vcProperty, owner, issuers, vcType, sigKeypair) {
 }
 
 /**
- * @param  {tokenName: String, reservableBalance: Number} TokenVC reservableBalance: In Lowest Form
+ * Sign VC
+ * @param  {Object} TokenVC
+ * @param  {String} TokenVC.tokenName 
+ * @param  {String} TokenVC.reservableBalance In Lowest Form
  * @param  {KeyPair} sigKeypair Issuer Key Ring pair
  * @returns {String} Signature
  */
@@ -100,13 +107,12 @@ function signVC(tokenVC, signingKeyPair) {
   let encodedTokenVC = createTokenVC(tokenVC, 'TokenVC');
   const hash = blake2AsU8a(encodedTokenVC);
   const sign = signingKeyPair.sign(hash);
-  return u8aToHex(sign);
+  return utils.bytesToHex(sign);
 }
 
 /**
  * Verify if the signature/verifier DID is valid and matches the given data in vc_json
  * @param {JSON} vcJson
- *
  * @returns {Boolean} true if valid VC
  */
 async function verifyVC(vcJson, api = false) {
@@ -118,7 +124,7 @@ async function verifyVC(vcJson, api = false) {
   }
 
   // check if the hash and the properties are a match
-  const expectedHash = u8aToHex(sha256(stringToU8a(JSON.stringify(vcJson.properties))));
+  const expectedHash = utils.bytesToHex(sha256(utils.stringToBytes(JSON.stringify(vcJson.properties))));
   if (expectedHash !== vcJson.hash) {
     throw new Error('Data Mismatch!');
   }
@@ -144,14 +150,14 @@ async function verifyVC(vcJson, api = false) {
     });
   }
 
-  return signatureVerify(hexToU8a(vcJson.hash), hexToU8a(vcJson.signature), signerAddress.toString()).isValid;
+  return signatureVerify(utils.hexToBytes(vcJson.hash), utils.hexToBytes(vcJson.signature), signerAddress.toString()).isValid;
 }
 
 
 /**
  * Store vc hex
  * @param {String} vcHex
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
@@ -196,7 +202,7 @@ async function storeVC(
  * Store vc hex
  * @param {String} vcId
  * @param {String} sign
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
@@ -242,7 +248,7 @@ async function addSignature(
  * Update Status
  * @param {String} vcId
  * @param {String} vcStatus
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */

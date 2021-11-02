@@ -2,11 +2,11 @@ const { buildConnection } = require('./connection.js');
 const { sanitiseDid } = require('./did.js');
 
 /**
- * Get account balance based on the did supplied.
- * @param {string} did Identifier of the user
- * @param {ApiPromse} api
+ * Get account balance(Highest Form) based on the did supplied.
+ * @param {String} did Identifier of the user
+ * @param {ApiPromse=} api Api Object from Build Connection
  * @returns {String} Balance In Highest Form
- * @example await getBalanceFromDID(did, true)
+ * @example await getBalanceFromDID(did, api)
  */
 const getBalance = async (did, api = false) => {
   // Resolve the did to get account ID
@@ -25,7 +25,7 @@ const getBalance = async (did, api = false) => {
  * Listen to balance changes for a DID and execute the callback.
  * @param {String} identifier DID
  * @param {Function} callback Cb function to execute with new balance in Highest Form
- * @param {ApiPromise} api Api object of polkadot
+ * @param {ApiPromise=} api Api Object from Build Connection
  */
 const subscribeToBalanceChanges = async (identifier, callback, api = false) => {
   try {

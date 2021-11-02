@@ -13,7 +13,7 @@ const { sanitiseDid } = require('./did');
  * Issue new token from given vc Id
  * @param {String} vcId
  * @param {String} totalIssuanceAmt
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
@@ -61,7 +61,7 @@ async function issueToken(
  * @param {String} recipentDid
  * @param {String} currencyId
  * @param {String} tokenAmount
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
@@ -111,7 +111,7 @@ async function issueToken(
  * Transfer all token with given vc_id to the recipent_did
  * @param {String} recipentDid
  * @param {String} currencyId
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
@@ -159,7 +159,7 @@ async function issueToken(
 /**
  * Slash token from given currency
  * @param {String} vcId
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
@@ -201,7 +201,7 @@ async function issueToken(
 /**
  * Mint token to given currency
  * @param {String} vcId
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
@@ -296,7 +296,7 @@ async function getTokenTotalSupply(currencyId, api = false) {
  * Get the lock for given currency id
  * @param {String} currencyId
  * @param {ApiPromise} api
- * @returns {id: String, amount: Number} totalSupply
+ * @returns {Object} 
  */
  async function getLocks(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
@@ -312,7 +312,7 @@ async function getTokenTotalSupply(currencyId, api = false) {
  * Get the total issuance amount for given currency id
  * @param {String} currencyId
  * @param {ApiPromise} api
- * @returns {String} totalSupply
+ * @returns {String}
  */
  async function getTokenIssuer(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
@@ -326,7 +326,7 @@ async function getTokenTotalSupply(currencyId, api = false) {
  * @param {String} destination (DID)
  * @param {String} from (DID)
  * @param {String} amount (MUI amount)
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {ApiPromise} api
  * @returns {String} transaction_hex_id
  */

@@ -7,6 +7,10 @@ const IDENTIFIER_MAX_LENGTH = 20;
 const IDENTIFIER_MIN_LENGTH = 3;
 const DID_HEX_LEN = 64;
 
+
+/** Generate Mnemonic
+ * @returns {String} Mnemonic
+ */
 const generateMnemonic = () => mnemonicGenerate();
 
 const checkIdentifierFormat = (identifier) => {
@@ -14,6 +18,7 @@ const checkIdentifierFormat = (identifier) => {
 
   return format.test(identifier);
 };
+
 /**
  * Generate did object to be stored in blockchain.
  * @param {String} mnemonic
@@ -59,7 +64,7 @@ const generateDID = async (mnemonic, identifier, metadata = '') => {
  * @param {Object} DID
  * @param {Object} signingKeypair
  * @param {ApiPromise} api
- * @returns {string} txnId Txnid for storage operation.
+ * @returns {String} txnId Txnid for storage operation.
  */
 function storeDIDOnChain(DID, signingKeypair, api = false) {
   return new Promise(async (resolve, reject) => {
@@ -97,7 +102,7 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
 /**
  * Get did information from accountID
  * @param {String} identifier DID Identifier
- * returns {JSON}
+ * @returns {JSON}
  */
 async function getDIDDetails(identifier, api = false) {
   try {
@@ -237,7 +242,7 @@ const sanitiseDid = (did) => {
  * Check if the user is an approved validator
  * @param {String} identifier
  * @param {ApiPromise} api
- * @returns {Bool}
+ * @returns {Boolean}
  */
 async function isDidValidator(identifier, api = false) {
   const provider = api || (await buildConnection('local'));
@@ -250,7 +255,7 @@ async function isDidValidator(identifier, api = false) {
  * Fetch the history of rotated keys for the specified DID
  * @param {String} identifier
  * @param {ApiPromise} api
- * returns Array
+ * @returns {Array}
  */
 async function getDidKeyHistory(identifier, api = false) {
   const provider = api || (await buildConnection('local'));
@@ -263,7 +268,7 @@ async function getDidKeyHistory(identifier, api = false) {
  *
  * @param {String} identifier
  * @param {String} metadata
- * @param {KeyringObj} signingKeypair // of a validator account
+ * @param {KeyringObj} signingKeypair of a validator account
  * @param {ApiPromise} api
  */
 async function updateMetadata(identifier, metadata, signingKeypair, api = false) {

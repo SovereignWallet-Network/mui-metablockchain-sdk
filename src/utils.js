@@ -1,4 +1,4 @@
-const { u8aToHex, hexToU8a, hexToString: polkadotHextoString } = require('@polkadot/util');
+const { u8aToHex, hexToU8a, hexToString: polkadotHextoString, stringToU8a } = require('@polkadot/util');
 const { base58Decode } = require('@polkadot/util-crypto');
 const types = require('@polkadot/types');
 
@@ -73,9 +73,25 @@ const METABLOCKCHAIN_TYPES = {
 const TOKEN_NAME_BYTES = 16;
 const VC_PROPERTY_BYTES = 128;
 
+/**
+ * @param  {Bytes} inputBytes u8[]
+ */
 const bytesToHex = (inputBytes) => u8aToHex(inputBytes);
+/**
+ * @param  {String} inputString
+ */
 const hexToBytes = (inputString) => hexToU8a(inputString);
+/**
+ * @param  {Base58} bs58string
+ */
 const base58ToBytes = (bs58string) => base58Decode(bs58string);
+/**
+ * @param  {String} inputString
+ */
+const stringToBytes = (inputString) => stringToU8a(inputString);
+/**
+ * @param  {Hex} hexString
+ */
 const hexToString = (hexString) => polkadotHextoString(hexString).replace(/^\0+/, '').replace(/\0+$/, '');
 
 const registry = new types.TypeRegistry();
@@ -107,6 +123,7 @@ module.exports = {
   hexToBytes,
   base58ToBytes,
   hexToString,
+  stringToBytes,
   encodeData,
   decodeHex,
 };

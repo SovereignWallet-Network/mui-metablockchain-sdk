@@ -6,7 +6,7 @@ const { resolveDIDToAccount } = require('./did.js');
  * receiverDID.
  * Note : balanceCheck has not been included in the checks since sender not having balance
  * is handled in extrinsic, check test/transaction.js
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {String} receiverDID
  * @param {String} amount In Lowest Form
  * @param {APIPromise} api (optional)
@@ -59,7 +59,7 @@ async function sendTransaction(
 /**
  * This function is similar to sendTransaction except that it provides the user to add the memo to transfer functionality.
  * 
- * @param {KeyringObj} senderAccountKeyPair
+ * @param {KeyPair} senderAccountKeyPair
  * @param {String} receiverDID
  * @param {String} amount In Lowest Form
  * @param {String} memo

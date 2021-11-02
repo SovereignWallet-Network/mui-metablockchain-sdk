@@ -2,10 +2,11 @@ const did = require('../src/did');
 const { buildConnection } = require('./connection.js');
 
 /**
- * @param  {String[]} newMembers Array of Did
- * @param  {String} prime
- * @param  {Number} oldCount
- * @param  {KeyPair} signingKeypair
+ * Set Members and prime of collective pallet
+ * @param  {Array<String>} newMembers Array of Did
+ * @param  {String} prime Did of Prime
+ * @param  {Number} oldCount Old members count
+ * @param  {KeyPair} signingKeypair Key pair of Sender
  * @returns {String} Hash
  */
 async function setMembers(newMembers, prime, oldCount, signingKeypair, api = false) {
@@ -46,10 +47,11 @@ async function setMembers(newMembers, prime, oldCount, signingKeypair, api = fal
 
 
 /**
- * @param  {Number} threshold
- * @param  {Call} proposal
- * @param  {Number} lengthCount
- * @param  {KeyPair} signingKeypair
+ * To create a proposal
+ * @param  {Number} threshold Threshold to successfull execution
+ * @param  {Call} proposal Call to propose
+ * @param  {Number} lengthCount Length of call
+ * @param  {KeyPair} signingKeypair Key pair of sender
  */
 async function propose(threshold, proposal, lengthCount, signingKeypair, api = false) {
   return new Promise(async (resolve, reject) => {
@@ -84,9 +86,10 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
 }
 
 /**
- * @param  {Call} proposal
- * @param  {Number} lengthCount
- * @param  {KeyPair} signingKeypair
+ * To Execute a call
+ * @param  {Call} proposal Call to propose
+ * @param  {Number} lengthCount Length of Call
+ * @param  {KeyPair} signingKeypair Key pair of sender
  */
  async function execute(proposal, lengthCount, signingKeypair, api = false) {
   return new Promise(async (resolve, reject) => {
@@ -121,10 +124,11 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
 }
 
 /**
- * @param  {String} proposalHash Hash
- * @param  {Number} index
- * @param  {Boolean} approve
- * @param  {KeyPair} signingKeypair
+ * Vote on a proposal
+ * @param  {String} proposalHash Hash of proposal
+ * @param  {Number} index Proposal index
+ * @param  {Boolean} approve True/false
+ * @param  {KeyPair} signingKeypair Key pair of sender
  */
  async function vote(proposalHash, index, approve, signingKeypair, api = false) {
   return new Promise(async (resolve, reject) => {
@@ -159,11 +163,12 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
 }
 
 /**
+ * Close a proposal manually, executes call if yes votes is greater than or equal to threshold
  * @param  {String} proposalHash Hash
- * @param  {Number} index
- * @param  {Boolean} proposalWeightBond
- * @param  {Number} lengthCount
- * @param  {KeyPair} signingKeypair
+ * @param  {Number} index Proposal index
+ * @param  {Boolean} proposalWeightBond Weight
+ * @param  {Number} lengthCount Length
+ * @param  {KeyPair} signingKeypair Key pair of sender
  */
  async function close(proposalHash, index, proposalWeightBond, lengthCount, signingKeypair, api = false) {
   return new Promise(async (resolve, reject) => {
@@ -198,8 +203,9 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
 }
 
 /**
+ * Disapprove proposal
  * @param  {String} proposalHash Hash
- * @param  {KeyPair} signingKeypair
+ * @param  {KeyPair} signingKeypair Key pair of sender
  */
  async function disapproveProposal(proposalHash, signingKeypair, api = false) {
   return new Promise(async (resolve, reject) => {
@@ -234,32 +240,52 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
     }
   });
 }
-
+/**
+ * Get Members of Council
+ * @param  {Boolean} api Network Provider
+ */
 async function getMembers(api = false) {
   const provider = api || (await buildConnection('local'));
   return (await provider.query.council.members()).toHuman();
 }
-
+/**
+ * Get Members of Council
+ * @param  {Boolean} api Network Provider
+ */
 async function getPrime(api = false) {
   const provider = api || (await buildConnection('local'));
   return (await provider.query.council.prime()).toHuman();
 }
-
+/**
+ * Get All Proposals
+ * @param  {Boolean} api Network Provider
+ */
 async function getProposals(api = false) {
   const provider = api || (await buildConnection('local'));
   return (await provider.query.council.proposals()).toHuman();
 }
-
+/**
+ * Get Proposal of given hash
+ * @param {Hash} proposalHash Hash of proposal
+ * @param  {Boolean} api Network Provider
+ */
 async function getProposalOf(proposalHash, api = false) {
   const provider = api || (await buildConnection('local'));
   return (await provider.query.council.proposalOf(proposalHash)).toHuman();
 }
-
+/**
+ * Get Votes of given proposal hash
+ * @param {Hash} proposalHash Hash of proposal
+ * @param  {Boolean} api Network Provider
+ */
 async function getVotes(proposalHash, api = false) {
   const provider = api || (await buildConnection('local'));
   return (await provider.query.council.voting(proposalHash)).toHuman();
 }
-
+/**
+ * Get Total proposals count
+ * @param  {Boolean} api Network Provider
+ */
 async function getProposalCount(api = false) {
   const provider = api || (await buildConnection('local'));
   return (await provider.query.council.proposalCount()).toHuman();

@@ -39,7 +39,8 @@ const METABLOCKCHAIN_TYPES = {
     "_enum": [
       "TokenVC",
       "SlashTokens",
-      "MintTokens"
+      "MintTokens",
+      "TokenTransferVC"
     ]
   },
   "TokenVC": {
@@ -47,6 +48,11 @@ const METABLOCKCHAIN_TYPES = {
     "reservable_balance": "u128"
   },
   "SlashMintTokens": {
+    "vc_id": "VCid",
+    "currency_id": "CurrencyId",
+    "amount": "u128"
+  },
+  "TokenTransferVC": {
     "vc_id": "VCid",
     "currency_id": "CurrencyId",
     "amount": "u128"

@@ -9,7 +9,7 @@ const constants = require('./test_constants');
 const { expect } = require('chai');
 const did = require('../src/did');
 const { hexToString } = require('../src/utils');
-const { removeDid, storeVC, storeMintSlashVC } = require('./helper/helper');
+const { removeDid, storeVC, storeVCDirectly } = require('./helper/helper');
 
 describe('Token Module works correctly', () => {
   let sigKeypairRoot = null;
@@ -109,7 +109,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Mint Token works correctly', async () => {
-      await storeMintSlashVC(vcId, currencyId, 1000000, "MintTokens", signKeypairOrgA, provider);
+      await storeVCDirectly(vcId, currencyId, 1000000, "MintTokens", signKeypairOrgA, provider);
       let mintVcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[1];
       const transaction = await token.mintToken(mintVcId, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
@@ -126,7 +126,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Slash Token works correctly', async () => {
-      await storeMintSlashVC(vcId, currencyId, 1000000, "SlashTokens", signKeypairOrgA, provider);
+      await storeVCDirectly(vcId, currencyId, 1000000, "SlashTokens", signKeypairOrgA, provider);
       let slashVcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[2];
       const transaction = await token.slashToken(slashVcId, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
@@ -137,6 +137,18 @@ describe('Token Module works correctly', () => {
       assert.strictEqual(balance, 10);
     });
 
+    it('Transfer Token With VC works correctly', async () => {
+      await storeVCDirectly(vcId, currencyId, 1000000, "TokenTransferVC", signKeypairOrgA, provider);
+      let transferVCId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[3];
+      const transaction = await token.transferTokenWithVC(transferVCId, TEST_SWN_DID, signKeypairOrgA, provider);
+      assert.doesNotReject(transaction);
+    });
+
+    it('Get Token Balance after transfer token with vc works correctly', async () => {
+      let balance = await token.getTokenBalance(TEST_SWN_DID, currencyId, provider);
+      assert.strictEqual(balance, 1);
+    });
+
     it('Token transfer works correctly', async () => {
       const transaction = await token.transferToken(TEST_SWN_DID, currencyId, 10000, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
@@ -144,8 +156,8 @@ describe('Token Module works correctly', () => {
 
     it('Get Token Balance after transfer works correctly', async () => {
       let balance = await token.getTokenBalance(TEST_SWN_DID, currencyId, provider);
-      assert.strictEqual(balance, 0.01);
-    })
+      assert.strictEqual(balance, 1.01);
+    });
 
     it('Token transfer all works correctly', async () => {
       const transaction = await token.transferAll(TEST_SWN_DID, currencyId, signKeypairOrgA, provider);
@@ -165,7 +177,7 @@ describe('Token Module works correctly', () => {
 
 
   after(async () => {
-    // Delete created DID (did:ssid:rocket)
+    // Delete created DID
     if (constants.providerNetwork == 'local') {
       await removeDid(TEST_META_DID, sigKeypairRoot, provider);
       await removeDid(TEST_ORG_A_DID, sigKeypairRoot, provider);

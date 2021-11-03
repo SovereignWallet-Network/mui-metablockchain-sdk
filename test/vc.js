@@ -66,6 +66,39 @@ describe('VC works correctly', () => {
     assert.strictEqual(actualObject.vc_property, expectedObject.vc_property);
   });
 
+  it('VC creation fails token name is not given', async () => {
+    let tokenVC = {
+      reservableBalance: 1000,
+    };
+    let owner = TEST_DID;
+    let issuers = [
+      TEST_SWN_DID,
+      EVE_DID,
+    ];
+    try {
+      vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+    } catch(e) {
+      assert.strictEqual(e.message, "Token name is required");
+    }
+  });
+
+  it('VC creation fails when token name length exceeds limit', async () => {
+    let tokenVC = {
+      tokenName: 'abcdefghijlkmnopq',
+      reservableBalance: 1000,
+    };
+    let owner = TEST_DID;
+    let issuers = [
+      TEST_SWN_DID,
+      EVE_DID,
+    ];
+    try {
+      vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+    } catch(e) {
+      assert.strictEqual(e.message, "Token name should not exceed 16 chars");
+    }
+  });
+
   it('VC is signed in correct format', async () => {
     let tokenVC = {
       tokenName: 'test',

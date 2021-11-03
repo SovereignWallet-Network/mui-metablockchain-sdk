@@ -35,6 +35,12 @@ const utils = require('../src/utils');
  * @returns {String} Token VC Hex String
  */
 function createTokenVC({ tokenName, reservableBalance }) {
+  if(!tokenName) {
+    throw new Error('Token name is required');
+  }
+  if(tokenName.length > utils.TOKEN_NAME_BYTES) {
+    throw new Error('Token name should not exceed 16 chars');
+  }
   let vcProperty = {
     token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
     reservable_balance: utils.encodeData(reservableBalance, 'Balance'),
@@ -44,9 +50,10 @@ function createTokenVC({ tokenName, reservableBalance }) {
 }
 
 /** Encodes Token VC and pads with appropriate bytes
- * @param  {Object} TokenVC
- * @param  {String} TokenVC.tokenName 
- * @param  {String} TokenVC.reservableBalance In Lowest Form
+ * @param  {Object} vcProperty
+ * @param  {String} vcProperty.vcId 
+ * @param  {String} vcProperty.currencyId
+ * @param  {String} vcProperty.amount In Lowest Form
  * @returns {String} Token VC Hex String
  */
  function createMintSlashVC({ vcId, currencyId, amount }) {
@@ -97,9 +104,7 @@ function createVC(vcProperty, owner, issuers, vcType, sigKeypair) {
 
 /**
  * Sign VC
- * @param  {Object} TokenVC
- * @param  {String} TokenVC.tokenName 
- * @param  {String} TokenVC.reservableBalance In Lowest Form
+ * @param  {Object} tokenVC
  * @param  {KeyPair} sigKeypair Issuer Key Ring pair
  * @returns {String} Signature
  */

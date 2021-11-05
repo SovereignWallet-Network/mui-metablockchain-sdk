@@ -73,8 +73,18 @@ const METABLOCKCHAIN_TYPES = {
     "free": "Balance",
     "reserved": "Balance",
     "frozen": "Balance"
-  }
+  },
 }
+
+// Types for generating HEX
+const ENCODE_TYPES = {
+  "VC_HEX": {
+    "vc_type": "VCType",
+    "vc_property": "[u8;128]",
+    "owner": "Did",
+    "issuers": "Vec<Did>"
+  }
+};
 
 const TOKEN_NAME_BYTES = 16;
 const VC_PROPERTY_BYTES = 128;
@@ -102,6 +112,7 @@ const hexToString = (hexString) => polkadotHextoString(hexString).replace(/^\0+/
 
 const registry = new types.TypeRegistry();
 registry.register(METABLOCKCHAIN_TYPES);
+registry.register(ENCODE_TYPES);
 
 /** Encodes object/ string of given type to hex
  * @param  {Object | String} data Object to be encoded

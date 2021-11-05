@@ -107,12 +107,20 @@ function createVC(vcProperty, owner, issuers, vcType, sigKeypair) {
     default:
       throw new Error("Unknown VC Type");
   }
-  const hash = blake2AsHex(encodedVCProperty);
+  owner = did.sanitiseDid(owner);
+  issuers = issuers.map(issuer => did.sanitiseDid(issuer));
+  const encodedData = utils.encodeData({
+    vc_type: vcType,
+    vc_property: encodedVCProperty,
+    owner,
+    issuers,
+  }, "VC_HEX");
+  const hash = blake2AsHex(encodedData);
   const sign = utils.bytesToHex(sigKeypair.sign(hash));
   let vcObject = {
     hash,
-    owner: did.sanitiseDid(owner),
-    issuers: issuers.map(issuer => did.sanitiseDid(issuer)),
+    owner,
+    issuers,
     signatures: [sign],
     is_vc_used: false,
     vc_type: vcType,

@@ -66,6 +66,22 @@ function createTokenVC({ tokenName, reservableBalance }) {
     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
 }
 
+/** Encodes Token VC and pads with appropriate bytes
+ * @param  {Object} vcProperty
+ * @param  {String} vcProperty.vcId 
+ * @param  {String} vcProperty.currencyId
+ * @param  {String} vcProperty.amount In Lowest Form
+ * @returns {String} Token VC Hex String
+ */
+ function createTokenTransferVC({ vcId, currencyId, amount }) {
+  let vcProperty = {
+    vc_id: vcId,
+    currency_id: utils.encodeData(currencyId, 'CurrencyId'),
+    amount: utils.encodeData(amount, 'Balance'),
+  };
+  return utils.encodeData(vcProperty, 'TokenTransferVC')
+    .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
+}
 
 /**
  * Create VC
@@ -85,15 +101,26 @@ function createVC(vcProperty, owner, issuers, vcType, sigKeypair) {
     case "SlashTokens":
       encodedVCProperty = createMintSlashVC(vcProperty);
       break;
+    case "TokenTransferVC":
+      encodedVCProperty = createTokenTransferVC(vcProperty);
+      break;
     default:
       throw new Error("Unknown VC Type");
   }
-  const hash = blake2AsHex(encodedVCProperty);
+  owner = did.sanitiseDid(owner);
+  issuers = issuers.map(issuer => did.sanitiseDid(issuer));
+  const encodedData = utils.encodeData({
+    vc_type: vcType,
+    vc_property: encodedVCProperty,
+    owner,
+    issuers,
+  }, "VC_HEX");
+  const hash = blake2AsHex(encodedData);
   const sign = utils.bytesToHex(sigKeypair.sign(hash));
   let vcObject = {
     hash,
-    owner: did.sanitiseDid(owner),
-    issuers: issuers.map(issuer => did.sanitiseDid(issuer)),
+    owner,
+    issuers,
     signatures: [sign],
     is_vc_used: false,
     vc_type: vcType,

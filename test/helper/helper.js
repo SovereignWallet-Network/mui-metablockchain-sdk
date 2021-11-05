@@ -28,6 +28,7 @@ async function removeDid(didString, sigKeyPair, provider) {
   }
 }
 /**
+ * Store VC with council
  * @param  {Hex} vcHex
  * @param  {KeyPair} sigKeypairOwner
  * @param  {KeyPair} sigKeypairRoot
@@ -62,6 +63,7 @@ async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil
   await collective.close(proposalHash, index, 1000, 1000, sigKeypairRoot, provider);
 }
 /**
+ * Store VC without council
  * @param  {Hex} vcId
  * @param  {Number} currencyId
  * @param  {Number} amount
@@ -71,7 +73,7 @@ async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil
  * @param  {KeyPair} sigKeypairCouncil
  * @param  {Api} provider
  */
-async function storeMintSlashVC(vcId, currencyId, amount, vcType, sigKeypairOwner, provider) {
+async function storeVCDirectly(vcId, currencyId, amount, vcType, sigKeypairOwner, provider) {
   let vcProperty = {
     vcId,
     currencyId,
@@ -88,5 +90,5 @@ async function storeMintSlashVC(vcId, currencyId, amount, vcType, sigKeypairOwne
 module.exports = {
   removeDid,
   storeVC,
-  storeMintSlashVC,
+  storeVCDirectly,
 }

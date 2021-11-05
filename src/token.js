@@ -375,6 +375,55 @@ async function withdrawTreasuryReserve(
   });
 }
 
+/**
+ * Transfer token of given currency to given Did from Currency owner account
+ * @param {String} vcId
+ * @param {String} receiverDID
+ * @param {KeyPair} senderAccountKeyPair
+ * @param {APIPromise} api
+ * @returns {hexString}
+ */
+ async function transferTokenWithVC(
+  vcId,
+  receiverDID,
+  senderAccountKeyPair,
+  api = false,
+) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      // check if the recipent DID is valid
+      const receiverAccountID = await resolveDIDToAccount(receiverDID, provider);
+      if (!receiverAccountID) {
+        throw new Error('tokens.RecipentDIDNotRegistered');
+      }
+      const tx = provider.tx.tokens.transferToken(vcId, receiverAccountID);
+      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(new Error(`${section}.${name}`));
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            console.log(dispatchError.toString());
+            reject(new Error(dispatchError.toString()));
+          }
+        } else if (status.isFinalized) {
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(status.asFinalized.toHex());
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+}
+
 module.exports = {
   transferToken,
   transferAll,
@@ -388,4 +437,5 @@ module.exports = {
   getTokenList,
   getTokenTotalSupply,
   withdrawTreasuryReserve,
+  transferTokenWithVC,
 };

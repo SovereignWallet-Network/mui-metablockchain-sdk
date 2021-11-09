@@ -32,9 +32,11 @@ const utils = require('../src/utils');
  * @param  {Object} TokenVC
  * @param  {String} TokenVC.tokenName 
  * @param  {String} TokenVC.reservableBalance In Lowest Form
+ * @param  {String} TokenVC.decimal 
+ * @param  {String} TokenVC.currencyCode 
  * @returns {String} Token VC Hex String
  */
-function createTokenVC({ tokenName, reservableBalance }) {
+function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
   if(!tokenName) {
     throw new Error('Token name is required');
   }
@@ -44,6 +46,8 @@ function createTokenVC({ tokenName, reservableBalance }) {
   let vcProperty = {
     token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
     reservable_balance: utils.encodeData(reservableBalance, 'Balance'),
+    decimal: utils.encodeData(decimal, 'decimal'),
+    currency_code: utils.encodeData(currencyCode.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'currency_code'),
   };
   return utils.encodeData(vcProperty, 'TokenVC')
     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x

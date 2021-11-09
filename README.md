@@ -550,7 +550,10 @@ Fetch the history of rotated keys for the specified DID
 <dt><a href="#getTokenBalance">getTokenBalance(did, currencyId, api)</a> ⇒ <code>String</code></dt>
 <dd><p>Get the token balance for a given token for given did</p>
 </dd>
-<dt><a href="#getTokenNameFromCurrencyId">getTokenNameFromCurrencyId(currencyId, api)</a> ⇒ <code>String</code></dt>
+<dt><a href="#getDetailedTokenBalance">getDetailedTokenBalance(did, currencyId, api)</a> ⇒ <code>Object</code></dt>
+<dd><p>Get the detailed token balance for a given token for given did</p>
+</dd>
+<dt><a href="#getTokenNameFromCurrencyId">getTokenNameFromCurrencyId(currencyId, api)</a> ⇒ <code>tokenIdentifier</code></dt>
 <dd><p>Get the human friendly name of token from token id</p>
 </dd>
 <dt><a href="#getTokenList">getTokenList(api)</a> ⇒ <code>Array</code></dt>
@@ -568,6 +571,9 @@ Fetch the history of rotated keys for the specified DID
 <dt><a href="#withdrawTreasuryReserve">withdrawTreasuryReserve(destination, from, amount, senderAccountKeyPair, api)</a> ⇒ <code>String</code></dt>
 <dd><p>Function to withdraw the treasury reserve amount locked at the time of
 token creation. Only a validator can call this operation succesfully.</p>
+</dd>
+<dt><a href="#transferTokenWithVC">transferTokenWithVC(vcId, receiverDID, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
+<dd><p>Transfer token of given currency to given Did from Currency owner account</p>
 </dd>
 </dl>
 
@@ -654,12 +660,27 @@ Get the token balance for a given token for given did
 | currencyId | <code>String</code> |  | 
 | api | <code>ApiPromise</code> | <code>false</code> | 
 
+<a name="getDetailedTokenBalance"></a>
+
+## getDetailedTokenBalance(did, currencyId, api) ⇒ <code>Object</code>
+Get the detailed token balance for a given token for given did
+
+**Kind**: global function  
+**Returns**: <code>Object</code> - In lowest Form  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| did | <code>String</code> |  | 
+| currencyId | <code>String</code> |  | 
+| api | <code>ApiPromise</code> | <code>false</code> | 
+
 <a name="getTokenNameFromCurrencyId"></a>
 
-## getTokenNameFromCurrencyId(currencyId, api) ⇒ <code>String</code>
+## getTokenNameFromCurrencyId(currencyId, api) ⇒ <code>tokenIdentifier</code>
 Get the human friendly name of token from token id
 
 **Kind**: global function  
+**Returns**: <code>tokenIdentifier</code> - {token_name: String, currency_code: String, decimal: String}  
 
 | Param | Type | Default |
 | --- | --- | --- |
@@ -732,6 +753,22 @@ token creation. Only a validator can call this operation succesfully.
 | senderAccountKeyPair | <code>KeyPair</code> |  |  |
 | api | <code>ApiPromise</code> | <code>false</code> |  |
 
+<a name="transferTokenWithVC"></a>
+
+## transferTokenWithVC(vcId, receiverDID, senderAccountKeyPair, api) ⇒ <code>hexString</code>
+Transfer token of given currency to given Did from Currency owner account
+
+**Kind**: global function  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| vcId | <code>String</code> |  | 
+| receiverDID | <code>String</code> |  | 
+| senderAccountKeyPair | <code>KeyPair</code> |  | 
+| api | <code>APIPromise</code> | <code>false</code> | 
+
+
+
 
 
 <a name="txnUtils"></a>
@@ -797,13 +834,16 @@ This function is similar to sendTransaction except that it provides the user to 
 <dt><a href="#createTokenVC">createTokenVC(TokenVC)</a> ⇒ <code>String</code></dt>
 <dd><p>Encodes Token VC and pads with appropriate bytes</p>
 </dd>
-<dt><a href="#createMintSlashVC">createMintSlashVC(TokenVC)</a> ⇒ <code>String</code></dt>
+<dt><a href="#createMintSlashVC">createMintSlashVC(vcProperty)</a> ⇒ <code>String</code></dt>
+<dd><p>Encodes Token VC and pads with appropriate bytes</p>
+</dd>
+<dt><a href="#createTokenTransferVC">createTokenTransferVC(vcProperty)</a> ⇒ <code>String</code></dt>
 <dd><p>Encodes Token VC and pads with appropriate bytes</p>
 </dd>
 <dt><a href="#createVC">createVC(vcProperty, owner, issuers, sigKeypair)</a> ⇒ <code>String</code></dt>
 <dd><p>Create VC</p>
 </dd>
-<dt><a href="#signVC">signVC(TokenVC, sigKeypair)</a> ⇒ <code>String</code></dt>
+<dt><a href="#signVC">signVC(tokenVC, sigKeypair)</a> ⇒ <code>String</code></dt>
 <dd><p>Sign VC</p>
 </dd>
 <dt><a href="#verifyVC">verifyVC(vcJson)</a> ⇒ <code>Boolean</code></dt>
@@ -845,10 +885,12 @@ Encodes Token VC and pads with appropriate bytes
 | TokenVC | <code>Object</code> |  |
 | TokenVC.tokenName | <code>String</code> |  |
 | TokenVC.reservableBalance | <code>String</code> | In Lowest Form |
+| TokenVC.decimal | <code>String</code> |  |
+| TokenVC.currencyCode | <code>String</code> |  |
 
 <a name="createMintSlashVC"></a>
 
-## createMintSlashVC(TokenVC) ⇒ <code>String</code>
+## createMintSlashVC(vcProperty) ⇒ <code>String</code>
 Encodes Token VC and pads with appropriate bytes
 
 **Kind**: global function  
@@ -856,9 +898,25 @@ Encodes Token VC and pads with appropriate bytes
 
 | Param | Type | Description |
 | --- | --- | --- |
-| TokenVC | <code>Object</code> |  |
-| TokenVC.tokenName | <code>String</code> |  |
-| TokenVC.reservableBalance | <code>String</code> | In Lowest Form |
+| vcProperty | <code>Object</code> |  |
+| vcProperty.vcId | <code>String</code> |  |
+| vcProperty.currencyId | <code>String</code> |  |
+| vcProperty.amount | <code>String</code> | In Lowest Form |
+
+<a name="createTokenTransferVC"></a>
+
+## createTokenTransferVC(vcProperty) ⇒ <code>String</code>
+Encodes Token VC and pads with appropriate bytes
+
+**Kind**: global function  
+**Returns**: <code>String</code> - Token VC Hex String  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| vcProperty | <code>Object</code> |  |
+| vcProperty.vcId | <code>String</code> |  |
+| vcProperty.currencyId | <code>String</code> |  |
+| vcProperty.amount | <code>String</code> | In Lowest Form |
 
 <a name="createVC"></a>
 
@@ -877,7 +935,7 @@ Create VC
 
 <a name="signVC"></a>
 
-## signVC(TokenVC, sigKeypair) ⇒ <code>String</code>
+## signVC(tokenVC, sigKeypair) ⇒ <code>String</code>
 Sign VC
 
 **Kind**: global function  
@@ -885,9 +943,7 @@ Sign VC
 
 | Param | Type | Description |
 | --- | --- | --- |
-| TokenVC | <code>Object</code> |  |
-| TokenVC.tokenName | <code>String</code> |  |
-| TokenVC.reservableBalance | <code>String</code> | In Lowest Form |
+| tokenVC | <code>Object</code> |  |
 | sigKeypair | <code>KeyPair</code> | Issuer Key Ring pair |
 
 <a name="verifyVC"></a>

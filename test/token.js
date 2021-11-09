@@ -2,7 +2,6 @@ const assert = require('assert');
 const token = require('../src/token');
 const tx = require('../src/transaction');
 const vc = require('../src/vc');
-const collective = require('../src/collective');
 const { initKeyring } = require('../src/config');
 const { buildConnection } = require('../src/connection');
 const constants = require('./test_constants');
@@ -46,11 +45,12 @@ describe('Token Module works correctly', () => {
         try {
           await did.storeDIDOnChain(didObj, sigKeypairRoot, provider);
         } catch(err) {}
-        const nonce = await provider.rpc.system.accountNextIndex(sigKeypairRoot.address);
-        await tx.sendTransaction(sigKeypairRoot, TEST_META_DID, '20000000', provider, nonce);
+        await tx.sendTransaction(sigKeypairRoot, TEST_META_DID, '20000000', provider);
         let tokenVC = {
           tokenName: 'Org_A',
           reservableBalance: 10000,
+          decimal: 6,
+          currencyCode: 'OTH',
         };
         let owner = TEST_ORG_A_DID;
         let issuers = [
@@ -78,6 +78,8 @@ describe('Token Module works correctly', () => {
       tokensList.forEach(item => {
         expect(item).to.haveOwnProperty('id');
         expect(item).to.haveOwnProperty('name');
+        expect(item).to.haveOwnProperty('currencyCode');
+        expect(item).to.haveOwnProperty('decimal');
       });
     });
 
@@ -87,9 +89,8 @@ describe('Token Module works correctly', () => {
     });
 
     it('Get Token Name from currency id works correctly', async () => {
-      let tokenName = await token.getTokenNameFromCurrencyId(currencyId, provider);
-      decodeTokName = hexToString(tokenName);
-      assert.strictEqual(decodeTokName, 'Org_A');
+      let tokenIdentifier = await token.getTokenNameFromCurrencyId(currencyId, provider);
+      assert.strictEqual(tokenIdentifier.token_name, 'Org_A');
     });
 
     it('Get tokens total supply works correctly', async () => {

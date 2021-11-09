@@ -44,8 +44,10 @@ const METABLOCKCHAIN_TYPES = {
     ]
   },
   "TokenVC": {
-    "token_name": "token_bytes",
-    "reservable_balance": "u128"
+    "token_name": "[u8;16]",
+    "reservable_balance": "u128",
+    "decimal": "u8",
+    "currency_code": "Bytes"
   },
   "SlashMintTokens": {
     "vc_id": "VCid",
@@ -67,13 +69,21 @@ const METABLOCKCHAIN_TYPES = {
   "VCid": "[u8;32]",
   "Hash": "H256",
   "Signature": "H512",
-  "token_bytes": "[u8;16]",
-  "TokenBytes": "[u8;16]", //TODO: Remove this once token identifier issue is resolved
-  "TokenData": { // To solve Account Data issue which has new field
-    "free": "Balance",
-    "reserved": "Balance",
-    "frozen": "Balance"
+  "TokenDetails": {
+    "token_name": "Bytes",
+    "currency_code": "Bytes",
+    "decimal": "u8"
   },
+  "TokenBalance": "u128",
+  "TokenAccountData": {
+    "free": "TokenBalance",
+    "reserved": "TokenBalance",
+    "frozen": "TokenBalance"
+  },
+  "TokenAccountInfo": {
+    "nonce": "u32",
+    "data": "TokenAccountData"
+  }
 }
 
 // Types for generating HEX
@@ -83,7 +93,10 @@ const ENCODE_TYPES = {
     "vc_property": "[u8;128]",
     "owner": "Did",
     "issuers": "Vec<Did>"
-  }
+  },
+  "decimal": "u8",
+  "currency_code": "Bytes",
+  "token_bytes": "[u8;16]",
 };
 
 const TOKEN_NAME_BYTES = 16;

@@ -250,7 +250,21 @@ async function mintToken(
 async function getTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toJSON().free/1e6;
+  const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toJSON().data.free/1e6;
+  return data;
+}
+
+/**
+ * Get the detailed token balance for a given token for given did
+ * @param {String} did
+ * @param {String} currencyId
+ * @param {ApiPromise} api
+ * @returns {Object} In lowest Form
+ */
+ async function getDetailedTokenBalance(did, currencyId, api = false) {
+  const provider = api || (await buildConnection('local'));
+  const did_hex = sanitiseDid(did);
+  const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toJSON().data;
   return data;
 }
 
@@ -258,7 +272,7 @@ async function getTokenBalance(did, currencyId, api = false) {
  * Get the human friendly name of token from token id
  * @param {String} currencyId
  * @param {ApiPromise} api
- * @returns {String}
+ * @returns {tokenIdentifier} {token_name: String, currency_code: String, decimal: String}
  */
 async function getTokenNameFromCurrencyId(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
@@ -276,7 +290,9 @@ async function getTokenList(api = false) {
   const data = await provider.query.tokens.tokenIdentifier.entries();
   return data.map(([{ args: [CurrencyId] }, value]) => ({
     id: CurrencyId.toHuman(),
-    name: value.toHuman(),
+    name: value.toHuman().token_name,
+    currencyCode: value.toHuman().currency_code,
+    decimal: value.toHuman().decimal,
   }));
 }
 
@@ -431,6 +447,7 @@ module.exports = {
   slashToken,
   mintToken,
   getTokenBalance,
+  getDetailedTokenBalance,
   getTokenNameFromCurrencyId,
   getLocks,
   getTokenIssuer,

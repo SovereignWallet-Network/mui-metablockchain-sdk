@@ -18,7 +18,9 @@ async function setMembers(newMembers, prime, oldCount, signingKeypair, api = fal
       const tx = provider.tx.sudo.sudo(
         provider.tx.council.setMembers(newMembers, prime, oldCount)
       );
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) { 
@@ -35,7 +37,7 @@ async function setMembers(newMembers, prime, oldCount, signingKeypair, api = fal
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
           console.log('Transaction send to provider', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
@@ -58,7 +60,9 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
     try {
       const provider = api || await buildConnection('local');
       const tx = provider.tx.council.propose(threshold, proposal, lengthCount);
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -96,7 +100,9 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
     try {
       const provider = api || await buildConnection('local');
       const tx = provider.tx.council.execute(proposal, lengthCount);
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -135,7 +141,9 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
     try {
       const provider = api || await buildConnection('local');
       const tx = provider.tx.council.vote(proposalHash, index, approve);
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -175,7 +183,9 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
     try {
       const provider = api || await buildConnection('local');
       const tx = provider.tx.council.close(proposalHash, index, proposalWeightBond, lengthCount);
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -214,7 +224,9 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
       const tx = provider.tx.sudo.sudo(
         provider.tx.council.disapproveProposal(proposalHash)
       );
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {

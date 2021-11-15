@@ -840,7 +840,7 @@ This function is similar to sendTransaction except that it provides the user to 
 <dt><a href="#createTokenTransferVC">createTokenTransferVC(vcProperty)</a> ⇒ <code>String</code></dt>
 <dd><p>Encodes Token VC and pads with appropriate bytes</p>
 </dd>
-<dt><a href="#createVC">createVC(vcProperty, owner, issuers, sigKeypair)</a> ⇒ <code>String</code></dt>
+<dt><a href="#createVC">createVC(vcProperty, owner, issuers, vcType, sigKeypair)</a> ⇒ <code>String</code></dt>
 <dd><p>Create VC</p>
 </dd>
 <dt><a href="#signVC">signVC(tokenVC, sigKeypair)</a> ⇒ <code>String</code></dt>
@@ -920,7 +920,7 @@ Encodes Token VC and pads with appropriate bytes
 
 <a name="createVC"></a>
 
-## createVC(vcProperty, owner, issuers, sigKeypair) ⇒ <code>String</code>
+## createVC(vcProperty, owner, issuers, vcType, sigKeypair) ⇒ <code>String</code>
 Create VC
 
 **Kind**: global function  
@@ -931,6 +931,7 @@ Create VC
 | vcProperty | <code>Object</code> |  |
 | owner | <code>String</code> | Did |
 | issuers | <code>Array.&lt;String&gt;</code> | Array of Did |
+| vcType | <code>String</code> | TokenVC, MintTokens, SlashTokens, TokenTransferVC |
 | sigKeypair | <code>KeyPair</code> | Owner Key Ring pair |
 
 <a name="signVC"></a>

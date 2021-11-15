@@ -92,6 +92,7 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  * @param  {Object} vcProperty
  * @param  {String} owner Did
  * @param  {String[]} issuers Array of Did
+ * @param  {String} vcType TokenVC, MintTokens, SlashTokens, TokenTransferVC
  * @param  {KeyPair} sigKeypair Owner Key Ring pair
  * @returns {String} VC Hex String
  */

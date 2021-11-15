@@ -79,7 +79,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
           console.log('Transaction send to provider', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
@@ -119,7 +119,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
           console.log('Transaction send to provider', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
@@ -160,7 +160,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
           console.log('Transaction send to provider', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
@@ -202,7 +202,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
           console.log('Transaction send to provider', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
@@ -243,7 +243,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
           console.log('Transaction send to provider', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {

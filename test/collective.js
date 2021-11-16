@@ -8,7 +8,7 @@ const { buildConnection } = require('../src/connection');
 const constants = require('./test_constants');
 const { removeDid } = require('./helper/helper');
 
-describe.only('Collective works correctly', () => {
+describe('Collective works correctly', () => {
   let provider = null;
   let sudoKey;
   let sudoPair;

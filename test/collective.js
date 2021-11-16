@@ -116,6 +116,9 @@ describe('Collective works correctly', () => {
       let voteCount = await collective.getVotes(proposalHash, provider);
       assert.strictEqual(voteCount.ayes.length, 2);
       assert.strictEqual(voteCount.nays.length, 1);
+      assert.strictEqual(voteCount.ayes.includes(did.sanitiseDid(TEST_SWN_DID)), true);
+      assert.strictEqual(voteCount.ayes.includes(did.sanitiseDid(TEST_ROCKET_DID)), true);
+      assert.strictEqual(voteCount.nays.includes(did.sanitiseDid(TEST_DAVE_DID)), true);
     });
 
     it('should close proposal correctly', async () => {

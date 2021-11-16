@@ -83,6 +83,13 @@ const METABLOCKCHAIN_TYPES = {
   "TokenAccountInfo": {
     "nonce": "u32",
     "data": "TokenAccountData"
+  },
+  "Votes": {
+    "index": "ProposalIndex",
+    "threshold": "MemberCount",
+    "ayes": "Vec<Did>",
+    "nays": "Vec<Did>",
+    "end": "BlockNumber"
   }
 }
 

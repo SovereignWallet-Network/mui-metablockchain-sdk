@@ -73,7 +73,9 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
 
       const tx = provider.tx.did.add(DID.public_key, sanitiseDid(DID.identity), DID.metadata);
 
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }){
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -89,7 +91,7 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
@@ -180,7 +182,9 @@ async function updateDidKey(identifier, newKey, signingKeypair, api) {
       const did_hex = sanitiseDid(identifier);
       // call the rotateKey extrinsinc
       const tx = provider.tx.did.rotateKey(did_hex, newKey);
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }){
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -196,7 +200,7 @@ async function updateDidKey(identifier, newKey, signingKeypair, api) {
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
@@ -277,7 +281,9 @@ async function updateMetadata(identifier, metadata, signingKeypair, api = false)
       const provider = api || (await buildConnection('local'));
       const did_hex = sanitiseDid(identifier);
       const tx = provider.tx.did.updateMetadata(did_hex, metadata);
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }){
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -293,7 +299,7 @@ async function updateMetadata(identifier, metadata, signingKeypair, api = false)
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {

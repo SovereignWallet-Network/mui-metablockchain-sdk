@@ -30,7 +30,9 @@ async function issueToken(
         vcId,
         totalIssuanceAmt,
       );
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -46,7 +48,7 @@ async function issueToken(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
@@ -81,7 +83,9 @@ async function issueToken(
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
       const tx = provider.tx.tokens.transfer(receiverAccountID, currencyId, tokenAmount);
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -97,7 +101,7 @@ async function issueToken(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
@@ -130,7 +134,9 @@ async function issueToken(
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
       const tx = provider.tx.tokens.transferAll(receiverAccountID, currencyId);
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -146,7 +152,7 @@ async function issueToken(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
@@ -172,7 +178,9 @@ async function issueToken(
     try {
       const provider = api || (await buildConnection('local'));
       const tx = provider.tx.tokens.slashToken(vcId);
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -188,7 +196,7 @@ async function issueToken(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
@@ -214,7 +222,9 @@ async function mintToken(
     try {
       const provider = api || (await buildConnection('local'));
       const tx = provider.tx.tokens.mintToken(vcId);
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -230,7 +240,7 @@ async function mintToken(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
@@ -365,7 +375,9 @@ async function withdrawTreasuryReserve(
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
       const tx = provider.tx.tokens.withdrawReserved(toAccountId, fromAccountId, amount);
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -381,7 +393,7 @@ async function withdrawTreasuryReserve(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
@@ -414,7 +426,9 @@ async function withdrawTreasuryReserve(
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
       const tx = provider.tx.tokens.transferToken(vcId, receiverAccountID);
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -430,7 +444,7 @@ async function withdrawTreasuryReserve(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {

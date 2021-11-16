@@ -209,7 +209,9 @@ async function storeVC(
 
       const tx = provider.tx.vc.store(vcHex);
 
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -225,7 +227,7 @@ async function storeVC(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
@@ -255,7 +257,9 @@ async function addSignature(
 
       const tx = provider.tx.vc.addSignature(vcId, sign);
 
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -271,7 +275,7 @@ async function addSignature(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
@@ -301,7 +305,9 @@ async function updateStatus(
 
       const tx = provider.tx.vc.updateStatus(vcId, vcStatus);
 
-      await tx.signAndSend(senderAccountKeyPair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -317,7 +323,7 @@ async function updateStatus(
           }
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {

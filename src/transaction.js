@@ -28,9 +28,11 @@ async function sendTransaction(
       if (!receiverAccountID) {
         throw new Error('balances.RecipentDIDNotRegistered');
       }
-      await provider.tx.balances
-        .transfer(receiverAccountID, amount)
-        .signAndSend(senderAccountKeyPair, { nonce: nonce }, ({ status, dispatchError }) => {
+      const tx = await provider.tx.balances
+        .transfer(receiverAccountID, amount);
+      const nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      const signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
           console.log('Transaction status:', status.type);
           if (dispatchError) {
             if (dispatchError.isModule) {
@@ -46,7 +48,7 @@ async function sendTransaction(
             }
           } else if (status.isFinalized) {
             console.log('Finalized block hash', status.asFinalized.toHex());
-            resolve(status.asFinalized.toHex());
+            resolve(signedTx.hash.toHex())
           }
         });
     } catch (err) {
@@ -83,9 +85,11 @@ async function transfer(
       if (!receiverAccountID) {
         throw new Error('balances.RecipentDIDNotRegistered');
       }
-      return provider.tx.balances
-        .transferWithMemo(receiverAccountID, amount, memo)
-        .signAndSend(senderAccountKeyPair, { nonce: nonce }, ({ status, dispatchError }) => {
+      const tx = provider.tx.balances
+        .transferWithMemo(receiverAccountID, amount, memo);
+      const nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      const signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      return signedTx.send(function ({ status, dispatchError }) {
           console.log('Transaction status:', status.type);
           if (dispatchError) {
             if (dispatchError.isModule) {
@@ -101,7 +105,7 @@ async function transfer(
             }
           } else if (status.isFinalized) {
             console.log('Finalized block hash', status.asFinalized.toHex());
-            resolve(status.asFinalized.toHex());
+            resolve(signedTx.hash.toHex());
           }
         });
     } catch (err) {

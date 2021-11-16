@@ -40,7 +40,9 @@ async function storeSchemaOnChain(schema, signingKeypair, api = false) {
         schema.hash,
         schema.json_data,
       );
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }){
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
@@ -57,7 +59,7 @@ async function storeSchemaOnChain(schema, signingKeypair, api = false) {
         } else if (status.isFinalized) {
           console.log('Finalized block hash', status.asFinalized.toHex());
           console.log('Transaction send to provider', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {

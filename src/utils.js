@@ -47,7 +47,7 @@ const METABLOCKCHAIN_TYPES = {
     "token_name": "[u8;16]",
     "reservable_balance": "u128",
     "decimal": "u8",
-    "currency_code": "Bytes"
+    "currency_code": "[u8;8]"
   },
   "SlashMintTokens": {
     "vc_id": "VCid",
@@ -102,11 +102,12 @@ const ENCODE_TYPES = {
     "issuers": "Vec<Did>"
   },
   "decimal": "u8",
-  "currency_code": "Bytes",
+  "currency_code": "[u8;8]",
   "token_bytes": "[u8;16]",
 };
 
 const TOKEN_NAME_BYTES = 16;
+const CURRENCY_CODE_BYTES = 8;
 const VC_PROPERTY_BYTES = 128;
 
 /**
@@ -155,6 +156,7 @@ function decodeHex(hexValue, typeKey) {
 module.exports = {
   METABLOCKCHAIN_TYPES,
   TOKEN_NAME_BYTES,
+  CURRENCY_CODE_BYTES,
   VC_PROPERTY_BYTES,
   bytesToHex,
   hexToBytes,

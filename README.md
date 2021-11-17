@@ -652,7 +652,7 @@ Mint token to given currency
 Get the token balance for a given token for given did
 
 **Kind**: global function  
-**Returns**: <code>String</code> - Balance In Highest Form  
+**Returns**: <code>String</code> - Balance In Lowest Form  
 
 | Param | Type | Default |
 | --- | --- | --- |
@@ -705,7 +705,7 @@ Get the list of all active tokens in metablockchain network
 Get the total issuance amount for given currency id
 
 **Kind**: global function  
-**Returns**: <code>String</code> - TotalSupply In Highest Form  
+**Returns**: <code>String</code> - TotalSupply In Lowest Form  
 
 | Param | Type | Default |
 | --- | --- | --- |

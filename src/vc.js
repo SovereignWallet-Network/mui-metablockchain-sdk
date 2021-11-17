@@ -43,11 +43,17 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
   if(tokenName.length > utils.TOKEN_NAME_BYTES) {
     throw new Error('Token name should not exceed 16 chars');
   }
+  if(!currencyCode) {
+    throw new Error('Currency code is required');
+  }
+  if(currencyCode.length > utils.CURRENCY_CODE_BYTES) {
+    throw new Error('Currency Code should not exceed 8 chars');
+  }
   let vcProperty = {
     token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
     reservable_balance: utils.encodeData(reservableBalance, 'Balance'),
     decimal: utils.encodeData(decimal, 'decimal'),
-    currency_code: utils.encodeData(currencyCode.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'currency_code'),
+    currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'currency_code'),
   };
   return utils.encodeData(vcProperty, 'TokenVC')
     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x

@@ -533,7 +533,7 @@ Fetch the history of rotated keys for the specified DID
 
 <dl>
 <dt><a href="#issueToken">issueToken(vcId, totalIssuanceAmt, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
-<dd><p>Issue new token from given vc Id</p>
+<dd><p>Issue new token from given vc Id. Amount is in lowest form here but everywhere else it's in highest form</p>
 </dd>
 <dt><a href="#transferToken">transferToken(recipentDid, currencyId, tokenAmount, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
 <dd><p>Transfer token with given token_id to the recipent_did</p>
@@ -580,14 +580,14 @@ token creation. Only a validator can call this operation succesfully.</p>
 <a name="issueToken"></a>
 
 ## issueToken(vcId, totalIssuanceAmt, senderAccountKeyPair, api) ⇒ <code>hexString</code>
-Issue new token from given vc Id
+Issue new token from given vc Id.  Amount is in lowest form here but everywhere else it's in highest form
 
 **Kind**: global function  
 
 | Param | Type | Default |
 | --- | --- | --- |
 | vcId | <code>String</code> |  | 
-| totalIssuanceAmt | <code>String</code> |  | 
+| totalIssuanceAmt | <code>String</code> | In Lowest Form  | 
 | senderAccountKeyPair | <code>KeyPair</code> |  | 
 | api | <code>APIPromise</code> | <code>false</code> | 
 
@@ -602,7 +602,7 @@ Transfer token with given token_id to the recipent_did
 | --- | --- | --- |
 | recipentDid | <code>String</code> |  | 
 | currencyId | <code>String</code> |  | 
-| tokenAmount | <code>String</code> |  | 
+| tokenAmount | <code>String</code> | In Highest Form | 
 | senderAccountKeyPair | <code>KeyPair</code> |  | 
 | api | <code>APIPromise</code> | <code>false</code> | 
 
@@ -652,7 +652,7 @@ Mint token to given currency
 Get the token balance for a given token for given did
 
 **Kind**: global function  
-**Returns**: <code>String</code> - Balance In Lowest Form  
+**Returns**: <code>String</code> - Balance In Highest Form  
 
 | Param | Type | Default |
 | --- | --- | --- |
@@ -666,7 +666,7 @@ Get the token balance for a given token for given did
 Get the detailed token balance for a given token for given did
 
 **Kind**: global function  
-**Returns**: <code>Object</code> - In lowest Form  
+**Returns**: <code>Object</code> - In Highest Form  
 
 | Param | Type | Default |
 | --- | --- | --- |
@@ -705,7 +705,7 @@ Get the list of all active tokens in metablockchain network
 Get the total issuance amount for given currency id
 
 **Kind**: global function  
-**Returns**: <code>String</code> - TotalSupply In Lowest Form  
+**Returns**: <code>String</code> - TotalSupply In Highest Form  
 
 | Param | Type | Default |
 | --- | --- | --- |
@@ -884,7 +884,7 @@ Encodes Token VC and pads with appropriate bytes
 | --- | --- | --- |
 | TokenVC | <code>Object</code> |  |
 | TokenVC.tokenName | <code>String</code> |  |
-| TokenVC.reservableBalance | <code>String</code> | In Lowest Form |
+| TokenVC.reservableBalance | <code>String</code> | In Highest Form |
 | TokenVC.decimal | <code>String</code> |  |
 | TokenVC.currencyCode | <code>String</code> |  |
 
@@ -901,7 +901,7 @@ Encodes Token VC and pads with appropriate bytes
 | vcProperty | <code>Object</code> |  |
 | vcProperty.vcId | <code>String</code> |  |
 | vcProperty.currencyId | <code>String</code> |  |
-| vcProperty.amount | <code>String</code> | In Lowest Form |
+| vcProperty.amount | <code>String</code> | In Highest Form |
 
 <a name="createTokenTransferVC"></a>
 
@@ -916,7 +916,7 @@ Encodes Token VC and pads with appropriate bytes
 | vcProperty | <code>Object</code> |  |
 | vcProperty.vcId | <code>String</code> |  |
 | vcProperty.currencyId | <code>String</code> |  |
-| vcProperty.amount | <code>String</code> | In Lowest Form |
+| vcProperty.amount | <code>String</code> | In Highest Form |
 
 <a name="createVC"></a>
 

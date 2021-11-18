@@ -44,11 +44,11 @@ describe('Token Module works correctly', () => {
         };
         try {
           await did.storeDIDOnChain(didObj, sigKeypairRoot, provider);
-        } catch(err) {}
+        } catch (err) { }
         await tx.sendTransaction(sigKeypairRoot, TEST_META_DID, '20000000', provider);
         let tokenVC = {
           tokenName: 'Org_A',
-          reservableBalance: 10000,
+          reservableBalance: 0.01,
           decimal: 6,
           currencyCode: 'OTH',
         };
@@ -56,8 +56,12 @@ describe('Token Module works correctly', () => {
         let issuers = [
           TEST_META_DID,
         ];
-        const vcHex = vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairMeta);
-        await storeVC(vcHex, sigKeypairMeta, sigKeypairRoot, signKeypairOrgA, provider);
+        try {
+          const vcHex = await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairMeta);
+          await storeVC(vcHex, sigKeypairMeta, sigKeypairRoot, signKeypairOrgA, provider);
+        } catch (err) {
+          console.log(err);
+        }
         vcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[0];
       }
     });
@@ -88,6 +92,13 @@ describe('Token Module works correctly', () => {
       assert.strictEqual(balance, 10);
     });
 
+    it('Get Detailed Token Balance works correctly', async () => {
+      let balance = await token.getDetailedTokenBalance(TEST_ORG_A_DID, currencyId, provider);
+      assert.strictEqual(balance.free, 10);
+      assert.strictEqual(balance.reserved, 0);
+      assert.strictEqual(balance.frozen, 0);
+    });
+
     it('Get Token Name from currency id works correctly', async () => {
       let tokenIdentifier = await token.getTokenNameFromCurrencyId(currencyId, provider);
       assert.strictEqual(tokenIdentifier.token_name, 'Org_A');
@@ -110,7 +121,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Mint Token works correctly', async () => {
-      await storeVCDirectly(vcId, currencyId, 1000000, "MintTokens", signKeypairOrgA, provider);
+      await storeVCDirectly(vcId, currencyId, 1, "MintTokens", signKeypairOrgA, provider);
       let mintVcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[1];
       const transaction = await token.mintToken(mintVcId, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
@@ -127,7 +138,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Slash Token works correctly', async () => {
-      await storeVCDirectly(vcId, currencyId, 1000000, "SlashTokens", signKeypairOrgA, provider);
+      await storeVCDirectly(vcId, currencyId, 1, "SlashTokens", signKeypairOrgA, provider);
       let slashVcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[2];
       const transaction = await token.slashToken(slashVcId, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
@@ -139,7 +150,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Transfer Token With VC works correctly', async () => {
-      await storeVCDirectly(vcId, currencyId, 1000000, "TokenTransferVC", signKeypairOrgA, provider);
+      await storeVCDirectly(vcId, currencyId, 1, "TokenTransferVC", signKeypairOrgA, provider);
       let transferVCId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[3];
       const transaction = await token.transferTokenWithVC(transferVCId, TEST_SWN_DID, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
@@ -151,7 +162,7 @@ describe('Token Module works correctly', () => {
     });
 
     it('Token transfer works correctly', async () => {
-      const transaction = await token.transferToken(TEST_SWN_DID, currencyId, 10000, signKeypairOrgA, provider);
+      const transaction = await token.transferToken(TEST_SWN_DID, currencyId, 0.01, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
     });
 

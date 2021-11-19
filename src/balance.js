@@ -1,5 +1,6 @@
 const { buildConnection } = require('./connection.js');
 const { sanitiseDid } = require('./did.js');
+const logger = require('./logger');
 
 /**
  * Get account balance(Highest Form) based on the did supplied.
@@ -17,7 +18,7 @@ const getBalance = async (did, api = false) => {
     const { data } = accountInfo.toJSON();
     return data.free / 1e6;
   } catch (err) {
-    // console.log(err);
+    logger.error(err);
     return null;
   }
 };

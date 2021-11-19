@@ -1,6 +1,7 @@
 const { mnemonicGenerate, mnemonicValidate } = require('@polkadot/util-crypto');
 const { initKeyring } = require('./config.js');
 const { buildConnection } = require('./connection.js');
+const logger = require('./logger');
 
 const IDENTIFIER_PREFIX = 'did:ssid:';
 const IDENTIFIER_MAX_LENGTH = 20;
@@ -76,26 +77,26 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
       await signedTx.send(function ({ status, dispatchError }){
-        console.log('Transaction status:', status.type);
+        logger.info('Transaction status: '+status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            logger.error(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            // console.log(dispatchError.toString());
+            logger.error(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          // console.log('Finalized block hash', status.asFinalized.toHex());
+          logger.debug('Finalized block hash: '+status.asFinalized.toHex());
           resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
-      // console.log(err);
+      logger.error(err);
       reject(err);
     }
   });
@@ -185,26 +186,26 @@ async function updateDidKey(identifier, newKey, signingKeypair, api) {
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
       await signedTx.send(function ({ status, dispatchError }){
-        console.log('Transaction status:', status.type);
+        logger.info('Transaction status: '+ status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            logger.error(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            // console.log(dispatchError.toString());
+            logger.error(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          // console.log('Finalized block hash', status.asFinalized.toHex());
+          logger.debug('Finalized block hash: ' + status.asFinalized.toHex());
           resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
-      // console.log(err);
+      logger.error(err);
       reject(err);
     }
   });
@@ -284,26 +285,26 @@ async function updateMetadata(identifier, metadata, signingKeypair, api = false)
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
       await signedTx.send(function ({ status, dispatchError }){
-        console.log('Transaction status:', status.type);
+        logger.info('Transaction status: '+ status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            logger.error(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            // console.log(dispatchError.toString());
+            logger.error(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          // console.log('Finalized block hash', status.asFinalized.toHex());
+          logger.debug('Finalized block hash: ' + status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      // console.log(err);
+      logger.error(err);
       reject(err);
     }
   });

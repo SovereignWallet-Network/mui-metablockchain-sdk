@@ -1,6 +1,5 @@
 const { buildConnection } = require('./connection.js');
 const { resolveDIDToAccount } = require('./did.js');
-const logger = require('./logger');
 
 /**
  * The function will perform a metamui transfer operation from the account of senderAccount to the
@@ -34,26 +33,26 @@ async function sendTransaction(
       const nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       const signedTx = tx.sign(senderAccountKeyPair, {nonce});
       await signedTx.send(function ({ status, dispatchError }) {
-          logger.info('Transaction status: '+ status.type);
+          console.log('Transaction status:', status.type);
           if (dispatchError) {
             if (dispatchError.isModule) {
               // for module errors, we have the section indexed, lookup
               const decoded = api.registry.findMetaError(dispatchError.asModule);
               const { documentation, name, section } = decoded;
-              logger.error(`${section}.${name}: ${documentation.join(' ')}`);
+              console.log(`${section}.${name}: ${documentation.join(' ')}`);
               reject(new Error(`${section}.${name}`));
             } else {
               // Other, CannotLookup, BadOrigin, no extra info
-              logger.error(dispatchError.toString());
+              console.log(dispatchError.toString());
               reject(new Error(dispatchError.toString()));
             }
           } else if (status.isFinalized) {
-            logger.debug('Finalized block hash: ' + status.asFinalized.toHex());
+            console.log('Finalized block hash', status.asFinalized.toHex());
             resolve(signedTx.hash.toHex())
           }
         });
     } catch (err) {
-      logger.error(err);
+      console.log(err);
       reject(err);
     }
   });
@@ -91,26 +90,26 @@ async function transfer(
       const nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       const signedTx = tx.sign(senderAccountKeyPair, {nonce});
       return signedTx.send(function ({ status, dispatchError }) {
-          logger.info('Transaction status: '+ status.type);
+          console.log('Transaction status:', status.type);
           if (dispatchError) {
             if (dispatchError.isModule) {
               // for module errors, we have the section indexed, lookup
               const decoded = api.registry.findMetaError(dispatchError.asModule);
               const { documentation, name, section } = decoded;
-              logger.error(`${section}.${name}: ${documentation.join(' ')}`);
+              console.log(`${section}.${name}: ${documentation.join(' ')}`);
               reject(new Error(`${section}.${name}`));
             } else {
               // Other, CannotLookup, BadOrigin, no extra info
-              logger.error(dispatchError.toString());
+              console.log(dispatchError.toString());
               reject(new Error(dispatchError.toString()));
             }
           } else if (status.isFinalized) {
-            logger.debug('Finalized block hash: ' + status.asFinalized.toHex());
+            console.log('Finalized block hash', status.asFinalized.toHex());
             resolve(signedTx.hash.toHex());
           }
         });
     } catch (err) {
-      logger.error(err);
+      console.log(err);
       reject(err);
     }
   });

@@ -26,7 +26,6 @@ const { doesSchemaExist } = require('./schema.js');
 const { sanitiseDid } = require('./did');
 const did = require('../src/did.js');
 const utils = require('../src/utils');
-const logger = require('./logger');
 const { getTokenData } = require('./token');
 
 
@@ -189,11 +188,11 @@ async function verifyVC(vcJson, api = false) {
   // if the pubkey has been rotated, check for older versions
   // naive implementation need to reafactor later handling edge cases
   if (didDetails.added_block > parseInt(vcJson.properties.issued_block, 10)) {
-    logger.info('Signing key has been rotated, searching for previous key history!');
+    console.log('Signing key has been rotated, searching for previous key history!');
     const prevKeyDetails = await getDidKeyHistory(vcJson.verifier);
     prevKeyDetails.forEach(([accountId, blockNo]) => {
       if (parseInt(vcJson.properties.issued_block, 10) > blockNo) {
-        logger.info('Signing key found!');
+        console.log('Signing key found!');
         signerAddress = accountId;
       }
     });
@@ -224,26 +223,26 @@ async function storeVC(
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
       await signedTx.send(function ({ status, dispatchError }) {
-        logger.info('Transaction status: '+ status.type);
+        console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            logger.error(`${section}.${name}: ${documentation.join(' ')}`);
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            logger.error(dispatchError.toString());
+            console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          logger.debug('Finalized block hash: ' + status.asFinalized.toHex());
+          console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      logger.error(err);
+      console.log(err);
       reject(err);
     }
   });
@@ -272,26 +271,26 @@ async function addSignature(
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
       await signedTx.send(function ({ status, dispatchError }) {
-        logger.info('Transaction status: '+ status.type);
+        console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            logger.error(`${section}.${name}: ${documentation.join(' ')}`);
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            logger.error(dispatchError.toString());
+            console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          logger.debug('Finalized block hash: ' + status.asFinalized.toHex());
+          console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      logger.error(err);
+      console.log(err);
       reject(err);
     }
   });
@@ -320,26 +319,26 @@ async function updateStatus(
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
       await signedTx.send(function ({ status, dispatchError }) {
-        logger.info('Transaction status: '+ status.type);
+        console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            logger.error(`${section}.${name}: ${documentation.join(' ')}`);
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            logger.error(dispatchError.toString());
+            console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          logger.debug('Finalized block hash: ' + status.asFinalized.toHex());
+          console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      logger.error(err);
+      console.log(err);
       reject(err);
     }
   });

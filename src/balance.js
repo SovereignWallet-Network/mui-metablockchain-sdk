@@ -17,7 +17,7 @@ const getBalance = async (did, api = false) => {
     const { data } = accountInfo.toJSON();
     return data.free / 1e6;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return null;
   }
 };

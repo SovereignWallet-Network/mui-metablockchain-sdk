@@ -1,6 +1,7 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { METABLOCKCHAIN_PROVIDER } = require('./config.js');
 const { METABLOCKCHAIN_TYPES } = require('./utils.js');
+const logger = require('./logger');
 
 // assign network
 const NETWORK_PROVIDER = {
@@ -32,7 +33,7 @@ function buildNewConnection(network = 'local') {
  */
 function buildConnection(network = 'local', ignoreCache = false) {
   if (!providerInstance || ignoreCache) {
-    console.log('Creating new websocket connection!');
+    logger.info('Creating new websocket connection!');
     providerInstance = buildNewConnection(network);
   }
   return providerInstance;

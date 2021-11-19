@@ -70,11 +70,11 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  */
  async function createMintSlashVC({ vcId, currencyId, amount }, api=false) {
   const provider = api || (await buildConnection('local'));
-  let tokenIdentifier = await getTokenIdentifier(currencyId, provider);
+  let tokenData = await getTokenIdentifier(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
     currency_id: utils.encodeData(currencyId, 'CurrencyId'),
-    amount: utils.encodeData(amount*(Math.pow(10,tokenIdentifier.decimal)), 'Balance'),
+    amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
   };
   return utils.encodeData(vcProperty, 'SlashMintTokens')
     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
@@ -89,11 +89,11 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  */
  async function createTokenTransferVC({ vcId, currencyId, amount }, api=false) {
   const provider = api || (await buildConnection('local'));
-  let tokenIdentifier = await getTokenIdentifier(currencyId, provider);
+  let tokenData = await getTokenIdentifier(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
     currency_id: utils.encodeData(currencyId, 'CurrencyId'),
-    amount: utils.encodeData(amount*(Math.pow(10,tokenIdentifier.decimal)), 'Balance'),
+    amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
   };
   return utils.encodeData(vcProperty, 'TokenTransferVC')
     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x

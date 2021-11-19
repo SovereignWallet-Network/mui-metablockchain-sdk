@@ -27,7 +27,7 @@ const { sanitiseDid } = require('./did');
 const did = require('../src/did.js');
 const utils = require('../src/utils');
 const logger = require('./logger');
-const { getTokenIdentifier } = require('./token');
+const { getTokenData } = require('./token');
 
 
 /** Encodes Token VC and pads with appropriate bytes
@@ -70,7 +70,7 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  */
  async function createMintSlashVC({ vcId, currencyId, amount }, api=false) {
   const provider = api || (await buildConnection('local'));
-  let tokenData = await getTokenIdentifier(currencyId, provider);
+  let tokenData = await getTokenData(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
     currency_id: utils.encodeData(currencyId, 'CurrencyId'),
@@ -89,7 +89,7 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  */
  async function createTokenTransferVC({ vcId, currencyId, amount }, api=false) {
   const provider = api || (await buildConnection('local'));
-  let tokenData = await getTokenIdentifier(currencyId, provider);
+  let tokenData = await getTokenData(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
     currency_id: utils.encodeData(currencyId, 'CurrencyId'),

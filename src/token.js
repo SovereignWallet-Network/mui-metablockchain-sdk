@@ -84,7 +84,7 @@ async function issueToken(
       if (!receiverAccountID) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
-      const tokenData = await getTokenIdentifier(currencyId, provider);
+      const tokenData = await getTokenData(currencyId, provider);
       tokenAmount = tokenAmount * (Math.pow(10,tokenData.decimal));
       const tx = provider.tx.tokens.transfer(receiverAccountID, currencyId, tokenAmount);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
@@ -264,7 +264,7 @@ async function mintToken(
 async function getTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const tokenData = await getTokenIdentifier(currencyId, provider);
+  const tokenData = await getTokenData(currencyId, provider);
   const data = (await provider.query.tokens.accounts(did_hex, currencyId))
                   .toJSON().data.free/(Math.pow(10,tokenData.decimal));
   return data;
@@ -280,7 +280,7 @@ async function getTokenBalance(did, currencyId, api = false) {
  async function getDetailedTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const tokenData = await getTokenIdentifier(currencyId, provider);
+  const tokenData = await getTokenData(currencyId, provider);
   const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toJSON().data;
   return {
     frozen: data.frozen/(Math.pow(10,tokenData.decimal)),
@@ -323,7 +323,7 @@ async function getTokenList(api = false) {
  * @param {ApiPromise} api
  * @returns {Object}
  */
- async function getTokenIdentifier(currencyId, api = false) {
+ async function getTokenData(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const data = await provider.query.tokens.tokenData(currencyId);
   return data.toHuman();
@@ -337,7 +337,7 @@ async function getTokenList(api = false) {
  */
 async function getTokenTotalSupply(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
-  const tokenData = await getTokenIdentifier(currencyId, provider);
+  const tokenData = await getTokenData(currencyId, provider);
   const data = await provider.query.tokens.totalIssuance(currencyId);
   return data.toJSON()/(Math.pow(10,tokenData.decimal));
 }
@@ -490,7 +490,7 @@ module.exports = {
   getLocks,
   getTokenIssuer,
   getTokenList,
-  getTokenIdentifier,
+  getTokenData,
   getTokenTotalSupply,
   withdrawTreasuryReserve,
   transferTokenWithVC,

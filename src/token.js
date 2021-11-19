@@ -11,9 +11,10 @@ const { sanitiseDid } = require('./did');
 const logger = require('./logger');
 
 /**
- * Issue new token from given vc Id
+ * Issue new token from given vc Id. Amount is in lowest form here 
+ * but everywhere else it's in highest form
  * @param {String} vcId
- * @param {String} totalIssuanceAmt
+ * @param {String} totalIssuanceAmt Amount is in lowest form
  * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
@@ -63,7 +64,7 @@ async function issueToken(
  * Transfer token with given token_id to the recipent_did
  * @param {String} recipentDid
  * @param {String} currencyId
- * @param {String} tokenAmount
+ * @param {String} tokenAmount In Highest Form
  * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
@@ -83,6 +84,8 @@ async function issueToken(
       if (!receiverAccountID) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
+      const tokenIdentifier = await getTokenIdentifier(currencyId, provider);
+      tokenAmount = tokenAmount * (Math.pow(10,tokenIdentifier.decimal));
       const tx = provider.tx.tokens.transfer(receiverAccountID, currencyId, tokenAmount);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
@@ -256,12 +259,14 @@ async function mintToken(
  * @param {String} did
  * @param {String} currencyId
  * @param {ApiPromise} api
- * @returns {String} Balance In Lowest Form
+ * @returns {String} Balance In Highest Form
  */
 async function getTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toJSON().data.free;
+  const tokenIdentifier = await getTokenIdentifier(currencyId, provider);
+  const data = (await provider.query.tokens.accounts(did_hex, currencyId))
+                  .toJSON().data.free/(Math.pow(10,tokenIdentifier.decimal));
   return data;
 }
 
@@ -270,13 +275,18 @@ async function getTokenBalance(did, currencyId, api = false) {
  * @param {String} did
  * @param {String} currencyId
  * @param {ApiPromise} api
- * @returns {Object} In lowest Form
+ * @returns {Object} In Highest Form
  */
  async function getDetailedTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
+  const tokenIdentifier = await getTokenIdentifier(currencyId, provider);
   const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toJSON().data;
-  return data;
+  return {
+    frozen: data.frozen/(Math.pow(10,tokenIdentifier.decimal)),
+    free: data.free/(Math.pow(10,tokenIdentifier.decimal)),
+    reserved: data.reserved/(Math.pow(10,tokenIdentifier.decimal)),
+  };
 }
 
 /**
@@ -308,15 +318,28 @@ async function getTokenList(api = false) {
 }
 
 /**
+ * Get the token by currency id in metablockchain network
+ * @param {String} currencyId
+ * @param {ApiPromise} api
+ * @returns {Object}
+ */
+ async function getTokenIdentifier(currencyId, api = false) {
+  const provider = api || (await buildConnection('local'));
+  const data = await provider.query.tokens.tokenIdentifier(currencyId);
+  return data.toHuman();
+}
+
+/**
  * Get the total issuance amount for given currency id
  * @param {String} currencyId
  * @param {ApiPromise} api
- * @returns {String} TotalSupply In Lowest Form
+ * @returns {String} TotalSupply In Highest Form
  */
 async function getTokenTotalSupply(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
+  const tokenIdentifier = await getTokenIdentifier(currencyId, provider);
   const data = await provider.query.tokens.totalIssuance(currencyId);
-  return data.toJSON();
+  return data.toJSON()/(Math.pow(10,tokenIdentifier.decimal));
 }
 
 /**
@@ -467,6 +490,7 @@ module.exports = {
   getLocks,
   getTokenIssuer,
   getTokenList,
+  getTokenIdentifier,
   getTokenTotalSupply,
   withdrawTreasuryReserve,
   transferTokenWithVC,

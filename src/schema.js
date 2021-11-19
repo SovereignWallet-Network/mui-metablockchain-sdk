@@ -10,7 +10,6 @@
 const { stringToU8a, u8aToHex } = require('@polkadot/util');
 const sha256 = require('js-sha256');
 const { buildConnection } = require('./connection.js');
-const logger = require('./logger');
 
 /**
  * Create a new schema with the properties provided in the schema_properties json
@@ -44,27 +43,27 @@ async function storeSchemaOnChain(schema, signingKeypair, api = false) {
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
       await signedTx.send(function ({ status, dispatchError }){
-        logger.info('Transaction status: '+ status.type);
+        console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            logger.error(`${section}.${name}: ${documentation.join(' ')}`);
+            console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            logger.error(dispatchError.toString());
+            console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          logger.debug('Finalized block hash: ' + status.asFinalized.toHex());
-          logger.debug('Transaction send to provider: '+ signedTx.hash.toHex());
+          console.log('Finalized block hash', status.asFinalized.toHex());
+          console.log('Transaction send to provider', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      logger.error(err);
+      console.log(err);
       return false;
     }
   });

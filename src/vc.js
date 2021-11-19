@@ -224,20 +224,20 @@ async function storeVC(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -272,20 +272,20 @@ async function addSignature(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -320,20 +320,20 @@ async function updateStatus(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });

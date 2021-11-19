@@ -83,7 +83,7 @@ async function storeVCDirectly(vcId, currencyId, amount, vcType, sigKeypairOwner
   let issuers = [
     TEST_DAVE_DID,
   ];
-  let vcHex = vc.createVC(vcProperty, owner, issuers, vcType, sigKeypairOwner);
+  let vcHex = await vc.createVC(vcProperty, owner, issuers, vcType, sigKeypairOwner);
   await vc.storeVC(vcHex, sigKeypairOwner, provider)
 }
 

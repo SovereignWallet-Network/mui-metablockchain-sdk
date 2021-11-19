@@ -26,12 +26,13 @@ const { doesSchemaExist } = require('./schema.js');
 const { sanitiseDid } = require('./did');
 const did = require('../src/did.js');
 const utils = require('../src/utils');
+const { getTokenIdentifier } = require('./token');
 
 
 /** Encodes Token VC and pads with appropriate bytes
  * @param  {Object} TokenVC
  * @param  {String} TokenVC.tokenName 
- * @param  {String} TokenVC.reservableBalance In Lowest Form
+ * @param  {String} TokenVC.reservableBalance In Highest Form
  * @param  {String} TokenVC.decimal 
  * @param  {String} TokenVC.currencyCode 
  * @returns {String} Token VC Hex String
@@ -51,7 +52,7 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
   }
   let vcProperty = {
     token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
-    reservable_balance: utils.encodeData(reservableBalance, 'Balance'),
+    reservable_balance: utils.encodeData(reservableBalance*(Math.pow(10,decimal)), 'Balance'),
     decimal: utils.encodeData(decimal, 'decimal'),
     currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'currency_code'),
   };
@@ -63,14 +64,16 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  * @param  {Object} vcProperty
  * @param  {String} vcProperty.vcId 
  * @param  {String} vcProperty.currencyId
- * @param  {String} vcProperty.amount In Lowest Form
+ * @param  {String} vcProperty.amount In Highest Form
  * @returns {String} Token VC Hex String
  */
- function createMintSlashVC({ vcId, currencyId, amount }) {
+ async function createMintSlashVC({ vcId, currencyId, amount }, api=false) {
+  const provider = api || (await buildConnection('local'));
+  let tokenIdentifier = await getTokenIdentifier(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
     currency_id: utils.encodeData(currencyId, 'CurrencyId'),
-    amount: utils.encodeData(amount, 'Balance'),
+    amount: utils.encodeData(amount*(Math.pow(10,tokenIdentifier.decimal)), 'Balance'),
   };
   return utils.encodeData(vcProperty, 'SlashMintTokens')
     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
@@ -80,14 +83,16 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  * @param  {Object} vcProperty
  * @param  {String} vcProperty.vcId 
  * @param  {String} vcProperty.currencyId
- * @param  {String} vcProperty.amount In Lowest Form
+ * @param  {String} vcProperty.amount In Highest Form
  * @returns {String} Token VC Hex String
  */
- function createTokenTransferVC({ vcId, currencyId, amount }) {
+ async function createTokenTransferVC({ vcId, currencyId, amount }, api=false) {
+  const provider = api || (await buildConnection('local'));
+  let tokenIdentifier = await getTokenIdentifier(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
     currency_id: utils.encodeData(currencyId, 'CurrencyId'),
-    amount: utils.encodeData(amount, 'Balance'),
+    amount: utils.encodeData(amount*(Math.pow(10,tokenIdentifier.decimal)), 'Balance'),
   };
   return utils.encodeData(vcProperty, 'TokenTransferVC')
     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
@@ -102,7 +107,7 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  * @param  {KeyPair} sigKeypair Owner Key Ring pair
  * @returns {String} VC Hex String
  */
-function createVC(vcProperty, owner, issuers, vcType, sigKeypair) {
+async function createVC(vcProperty, owner, issuers, vcType, sigKeypair, api=false) {
   let encodedVCProperty;
   switch (vcType) {
     case "TokenVC":
@@ -110,10 +115,10 @@ function createVC(vcProperty, owner, issuers, vcType, sigKeypair) {
       break;
     case "MintTokens":
     case "SlashTokens":
-      encodedVCProperty = createMintSlashVC(vcProperty);
+      encodedVCProperty = await createMintSlashVC(vcProperty, api);
       break;
     case "TokenTransferVC":
-      encodedVCProperty = createTokenTransferVC(vcProperty);
+      encodedVCProperty = await createTokenTransferVC(vcProperty, api);
       break;
     default:
       throw new Error("Unknown VC Type");

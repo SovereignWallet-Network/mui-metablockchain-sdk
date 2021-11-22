@@ -26,7 +26,7 @@ const { doesSchemaExist } = require('./schema.js');
 const { sanitiseDid } = require('./did');
 const did = require('../src/did.js');
 const utils = require('../src/utils');
-const { getTokenIdentifier } = require('./token');
+const { getTokenData } = require('./token');
 
 
 /** Encodes Token VC and pads with appropriate bytes
@@ -69,11 +69,11 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  */
  async function createMintSlashVC({ vcId, currencyId, amount }, api=false) {
   const provider = api || (await buildConnection('local'));
-  let tokenIdentifier = await getTokenIdentifier(currencyId, provider);
+  let tokenData = await getTokenData(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
     currency_id: utils.encodeData(currencyId, 'CurrencyId'),
-    amount: utils.encodeData(amount*(Math.pow(10,tokenIdentifier.decimal)), 'Balance'),
+    amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
   };
   return utils.encodeData(vcProperty, 'SlashMintTokens')
     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
@@ -88,11 +88,11 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
  */
  async function createTokenTransferVC({ vcId, currencyId, amount }, api=false) {
   const provider = api || (await buildConnection('local'));
-  let tokenIdentifier = await getTokenIdentifier(currencyId, provider);
+  let tokenData = await getTokenData(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
     currency_id: utils.encodeData(currencyId, 'CurrencyId'),
-    amount: utils.encodeData(amount*(Math.pow(10,tokenIdentifier.decimal)), 'Balance'),
+    amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
   };
   return utils.encodeData(vcProperty, 'TokenTransferVC')
     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
@@ -229,20 +229,20 @@ async function storeVC(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -277,20 +277,20 @@ async function addSignature(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -325,20 +325,20 @@ async function updateStatus(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });

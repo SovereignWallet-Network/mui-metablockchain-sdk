@@ -40,20 +40,20 @@ async function issueToken(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -83,8 +83,8 @@ async function issueToken(
       if (!receiverAccountID) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
-      const tokenIdentifier = await getTokenIdentifier(currencyId, provider);
-      tokenAmount = tokenAmount * (Math.pow(10,tokenIdentifier.decimal));
+      const tokenData = await getTokenData(currencyId, provider);
+      tokenAmount = tokenAmount * (Math.pow(10,tokenData.decimal));
       const tx = provider.tx.tokens.transfer(receiverAccountID, currencyId, tokenAmount);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
@@ -95,20 +95,20 @@ async function issueToken(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -146,20 +146,20 @@ async function issueToken(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -190,20 +190,20 @@ async function issueToken(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -234,20 +234,20 @@ async function mintToken(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -263,9 +263,9 @@ async function mintToken(
 async function getTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const tokenIdentifier = await getTokenIdentifier(currencyId, provider);
+  const tokenData = await getTokenData(currencyId, provider);
   const data = (await provider.query.tokens.accounts(did_hex, currencyId))
-                  .toJSON().data.free/(Math.pow(10,tokenIdentifier.decimal));
+                  .toJSON().data.free/(Math.pow(10,tokenData.decimal));
   return data;
 }
 
@@ -279,12 +279,12 @@ async function getTokenBalance(did, currencyId, api = false) {
  async function getDetailedTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const tokenIdentifier = await getTokenIdentifier(currencyId, provider);
+  const tokenData = await getTokenData(currencyId, provider);
   const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toJSON().data;
   return {
-    frozen: data.frozen/(Math.pow(10,tokenIdentifier.decimal)),
-    free: data.free/(Math.pow(10,tokenIdentifier.decimal)),
-    reserved: data.reserved/(Math.pow(10,tokenIdentifier.decimal)),
+    frozen: data.frozen/(Math.pow(10,tokenData.decimal)),
+    free: data.free/(Math.pow(10,tokenData.decimal)),
+    reserved: data.reserved/(Math.pow(10,tokenData.decimal)),
   };
 }
 
@@ -292,11 +292,11 @@ async function getTokenBalance(did, currencyId, api = false) {
  * Get the human friendly name of token from token id
  * @param {String} currencyId
  * @param {ApiPromise} api
- * @returns {tokenIdentifier} {token_name: String, currency_code: String, decimal: String}
+ * @returns {tokenData} {token_name: String, currency_code: String, decimal: String}
  */
 async function getTokenNameFromCurrencyId(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
-  const data = (await provider.query.tokens.tokenIdentifier(currencyId)).toHuman();
+  const data = (await provider.query.tokens.tokenData(currencyId)).toHuman();
   return data;
 }
 
@@ -307,7 +307,7 @@ async function getTokenNameFromCurrencyId(currencyId, api = false) {
  */
 async function getTokenList(api = false) {
   const provider = api || (await buildConnection('local'));
-  const data = await provider.query.tokens.tokenIdentifier.entries();
+  const data = await provider.query.tokens.tokenData.entries();
   return data.map(([{ args: [CurrencyId] }, value]) => ({
     id: CurrencyId.toHuman(),
     name: value.toHuman().token_name,
@@ -322,9 +322,9 @@ async function getTokenList(api = false) {
  * @param {ApiPromise} api
  * @returns {Object}
  */
- async function getTokenIdentifier(currencyId, api = false) {
+ async function getTokenData(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
-  const data = await provider.query.tokens.tokenIdentifier(currencyId);
+  const data = await provider.query.tokens.tokenData(currencyId);
   return data.toHuman();
 }
 
@@ -336,9 +336,9 @@ async function getTokenList(api = false) {
  */
 async function getTokenTotalSupply(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
-  const tokenIdentifier = await getTokenIdentifier(currencyId, provider);
+  const tokenData = await getTokenData(currencyId, provider);
   const data = await provider.query.tokens.totalIssuance(currencyId);
-  return data.toJSON()/(Math.pow(10,tokenIdentifier.decimal));
+  return data.toJSON()/(Math.pow(10,tokenData.decimal));
 }
 
 /**
@@ -407,20 +407,20 @@ async function withdrawTreasuryReserve(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -458,20 +458,20 @@ async function withdrawTreasuryReserve(
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
             reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
+            // console.log(dispatchError.toString());
             reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
           resolve(signedTx.hash.toHex())
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -489,7 +489,7 @@ module.exports = {
   getLocks,
   getTokenIssuer,
   getTokenList,
-  getTokenIdentifier,
+  getTokenData,
   getTokenTotalSupply,
   withdrawTreasuryReserve,
   transferTokenWithVC,

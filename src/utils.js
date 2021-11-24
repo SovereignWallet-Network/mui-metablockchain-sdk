@@ -1,5 +1,6 @@
 const { u8aToHex, hexToU8a, hexToString: polkadotHextoString, stringToU8a } = require('@polkadot/util');
 const { base58Decode, blake2AsHex } = require('@polkadot/util-crypto');
+
 const types = require('@polkadot/types');
 
 const METABLOCKCHAIN_TYPES = {
@@ -158,6 +159,24 @@ function decodeHex(hexValue, typeKey) {
   return types.createType(registry, typeKey, hexValue).toJSON();
 }
 
+  function tidy(s) {
+    const tidy = typeof s === 'string'
+      ? s.replace( /[\x00-\x1F\x7F-\xA0]+/g, '' )
+      : s ;
+    return tidy;
+  }
+
+function hex_to_ascii(str1)
+ {
+	var hex  = str1.toString();
+	var str = '';
+	for (var n = 0; n < hex.length; n += 2) {
+		str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+	}
+	return tidy(str);
+ }
+
+
 module.exports = {
   METABLOCKCHAIN_TYPES,
   TOKEN_NAME_BYTES,
@@ -170,5 +189,6 @@ module.exports = {
   stringToBytes,
   encodeData,
   decodeHex,
-  vcHexToVcId
+  vcHexToVcId,
+  hex_to_ascii
 };

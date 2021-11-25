@@ -91,7 +91,13 @@ const METABLOCKCHAIN_TYPES = {
     "ayes": "Vec<Did>",
     "nays": "Vec<Did>",
     "end": "BlockNumber"
-  }
+  },
+  "StorageVersion": {
+    "_enum": [
+      "V1_0_0",
+      "V2_0_0"
+    ]
+  },
 }
 
 // Types for generating HEX

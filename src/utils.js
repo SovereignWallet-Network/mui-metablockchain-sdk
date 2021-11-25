@@ -72,7 +72,8 @@ const METABLOCKCHAIN_TYPES = {
   "TokenDetails": {
     "token_name": "Bytes",
     "currency_code": "Bytes",
-    "decimal": "u8"
+    "decimal": "u8",
+    "block_number": "BlockNumber"
   },
   "TokenBalance": "u128",
   "TokenAccountData": {

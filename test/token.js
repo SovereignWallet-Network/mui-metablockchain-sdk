@@ -84,6 +84,7 @@ describe('Token Module works correctly', () => {
         expect(item).to.haveOwnProperty('name');
         expect(item).to.haveOwnProperty('currencyCode');
         expect(item).to.haveOwnProperty('decimal');
+        expect(item).to.haveOwnProperty('blockNumber');
       });
     });
 

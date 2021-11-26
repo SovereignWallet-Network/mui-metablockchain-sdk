@@ -147,15 +147,22 @@ async function createVC(vcProperty, owner, issuers, vcType, sigKeypair, api=fals
 
 /**
  * Sign VC
- * @param  {Object} tokenVC
+ * @param  {Object} vcData {vcType, vcProperty, owner, issuers}
  * @param  {KeyPair} sigKeypair Issuer Key Ring pair
  * @returns {String} Signature
  */
-function signVC(tokenVC, signingKeyPair) {
-  let encodedTokenVC = createTokenVC(tokenVC, 'TokenVC');
-  const hash = blake2AsU8a(encodedTokenVC);
-  const sign = signingKeyPair.sign(hash);
-  return utils.bytesToHex(sign);
+function signVC({vcType, vcProperty, owner, issuers}, signingKeyPair) {
+  owner = did.sanitiseDid(owner);
+  issuers = issuers.map(issuer => did.sanitiseDid(issuer));
+  const encodedData = utils.encodeData({
+    vc_type: vcType,
+    vc_property: createTokenVC(vcProperty),
+    owner,
+    issuers,
+  }, "VC_HEX");
+  const hash = blake2AsHex(encodedData);
+  const sign = utils.bytesToHex(signingKeyPair.sign(hash));
+  return sign;
 }
 
 /**

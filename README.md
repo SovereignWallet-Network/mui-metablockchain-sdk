@@ -843,7 +843,7 @@ This function is similar to sendTransaction except that it provides the user to 
 <dt><a href="#createVC">createVC(vcProperty, owner, issuers, vcType, sigKeypair)</a> ⇒ <code>String</code></dt>
 <dd><p>Create VC</p>
 </dd>
-<dt><a href="#signVC">signVC(tokenVC, sigKeypair)</a> ⇒ <code>String</code></dt>
+<dt><a href="#signVC">signVC(tokenData, sigKeypair)</a> ⇒ <code>String</code></dt>
 <dd><p>Sign VC</p>
 </dd>
 <dt><a href="#verifyVC">verifyVC(vcJson)</a> ⇒ <code>Boolean</code></dt>
@@ -944,7 +944,7 @@ Sign VC
 
 | Param | Type | Description |
 | --- | --- | --- |
-| tokenVC | <code>Object</code> |  |
+| tokenVC | <code> vcData</code> | {vcType, vcProperty, owner, issuers} |
 | sigKeypair | <code>KeyPair</code> | Issuer Key Ring pair |
 
 <a name="verifyVC"></a>

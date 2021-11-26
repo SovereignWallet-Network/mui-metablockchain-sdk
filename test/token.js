@@ -8,7 +8,7 @@ const constants = require('./test_constants');
 const { expect } = require('chai');
 const did = require('../src/did');
 const { hexToString } = require('../src/utils');
-const { removeDid, storeVC, storeVCDirectly } = require('./helper/helper');
+const { removeDid, sudoStoreVC, storeVCDirectly } = require('./helper/helper');
 
 describe('Token Module works correctly', () => {
   let sigKeypairRoot = null;
@@ -46,6 +46,14 @@ describe('Token Module works correctly', () => {
           await did.storeDIDOnChain(didObj, sigKeypairRoot, provider);
         } catch (err) { }
         await tx.sendTransaction(sigKeypairRoot, TEST_META_DID, '20000000', provider);
+        const didObjDave = {
+          public_key: signKeypairOrgA.publicKey, // this is the public key linked to the did
+          identity: TEST_ORG_A_DID, // this is the actual did
+          metadata: 'Metadata',
+        };
+        try {
+          await did.storeDIDOnChain(didObjDave, sigKeypairRoot, provider);
+        } catch (err) { }
         let tokenVC = {
           tokenName: 'Org_A',
           reservableBalance: 0.01,
@@ -58,7 +66,7 @@ describe('Token Module works correctly', () => {
         ];
         try {
           const vcHex = await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairMeta);
-          await storeVC(vcHex, sigKeypairMeta, sigKeypairRoot, signKeypairOrgA, provider);
+          await sudoStoreVC(vcHex, sigKeypairRoot, provider);
         } catch (err) {
           console.log(err);
         }

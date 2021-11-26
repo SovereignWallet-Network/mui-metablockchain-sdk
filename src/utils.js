@@ -72,7 +72,8 @@ const METABLOCKCHAIN_TYPES = {
   "TokenDetails": {
     "token_name": "Bytes",
     "currency_code": "Bytes",
-    "decimal": "u8"
+    "decimal": "u8",
+    "block_number": "BlockNumber"
   },
   "TokenBalance": "u128",
   "TokenAccountData": {
@@ -90,7 +91,13 @@ const METABLOCKCHAIN_TYPES = {
     "ayes": "Vec<Did>",
     "nays": "Vec<Did>",
     "end": "BlockNumber"
-  }
+  },
+  "StorageVersion": {
+    "_enum": [
+      "V1_0_0",
+      "V2_0_0"
+    ]
+  },
 }
 
 // Types for generating HEX

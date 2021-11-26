@@ -10,7 +10,7 @@ const did = require('../src/did');
 const { hexToString } = require('../src/utils');
 const { removeDid, sudoStoreVC, storeVCDirectly } = require('./helper/helper');
 
-describe('Token Module works correctly', () => {
+describe.only('Token Module works correctly', () => {
   let sigKeypairRoot = null;
   let signKeypairOrgA;
   let sigKeypairMeta;
@@ -92,6 +92,7 @@ describe('Token Module works correctly', () => {
         expect(item).to.haveOwnProperty('name');
         expect(item).to.haveOwnProperty('currencyCode');
         expect(item).to.haveOwnProperty('decimal');
+        expect(item).to.haveOwnProperty('blockNumber');
       });
     });
 

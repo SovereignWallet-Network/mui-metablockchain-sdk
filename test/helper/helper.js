@@ -87,8 +87,28 @@ async function storeVCDirectly(vcId, currencyId, amount, vcType, sigKeypairOwner
   await vc.storeVC(vcHex, sigKeypairOwner, provider)
 }
 
+async function sudoStoreVC(vcHex, sudoKeyPair, provider) {
+  return new Promise(async (resolve, reject) => {
+    const tx = provider.tx.sudo.sudo(provider.tx.vc.store(vcHex));
+    await tx.signAndSend(sudoKeyPair, { nonce: -1 }, ({ status, dispatchError }) => {
+      if (dispatchError) {
+        if (dispatchError.isModule) {
+          const decoded = api.registry.findMetaError(dispatchError.asModule);
+          const { documentation, name, section } = decoded;
+          reject(new Error(`${section}.${name}`));
+        } else {
+          reject(new Error(dispatchError.toString()));
+        }
+      } else if (status.isFinalized) {
+        resolve('Success');
+      }
+    });
+  });
+}
+
 module.exports = {
   removeDid,
   storeVC,
   storeVCDirectly,
+  sudoStoreVC,
 }

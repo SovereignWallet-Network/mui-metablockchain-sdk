@@ -1,6 +1,8 @@
 const { u8aToHex, hexToU8a, hexToString: polkadotHextoString, stringToU8a } = require('@polkadot/util');
 const { base58Decode, blake2AsHex } = require('@polkadot/util-crypto');
+
 const types = require('@polkadot/types');
+const { Enum } = require('@polkadot/types');
 
 const METABLOCKCHAIN_TYPES = {
   "PeerId": "(Vec<>)",
@@ -72,8 +74,7 @@ const METABLOCKCHAIN_TYPES = {
   "TokenDetails": {
     "token_name": "Bytes",
     "currency_code": "Bytes",
-    "decimal": "u8",
-    "block_number": "BlockNumber"
+    "decimal": "u8"
   },
   "TokenBalance": "u128",
   "TokenAccountData": {
@@ -91,13 +92,7 @@ const METABLOCKCHAIN_TYPES = {
     "ayes": "Vec<Did>",
     "nays": "Vec<Did>",
     "end": "BlockNumber"
-  },
-  "StorageVersion": {
-    "_enum": [
-      "V1_0_0",
-      "V2_0_0"
-    ]
-  },
+  }
 }
 
 // Types for generating HEX
@@ -138,10 +133,12 @@ const stringToBytes = (inputString) => stringToU8a(inputString);
  */
 const hexToString = (hexString) => polkadotHextoString(hexString).replace(/^\0+/, '').replace(/\0+$/, '');
 
+// const tokenVC = new Enum({'TokenVC': 1, 'MintTokens': 2, 'SlashTokens': 3, 'TokenTransferVC':4});
+
 /**
- * @param  {Hex} hexString
+ * @param {Hex} hexString
  */
- const vcHexToVcId = (hexString) => blake2AsHex(hexString);
+const vcHexToVcId = (hexString) => blake2AsHex(hexString);
 
 const registry = new types.TypeRegistry();
 registry.register(METABLOCKCHAIN_TYPES);
@@ -165,6 +162,47 @@ function decodeHex(hexValue, typeKey) {
   return types.createType(registry, typeKey, hexValue).toJSON();
 }
 
+/** regex to remove unwanted hex bytes
+ * @param  {String} s Hex String to make tidy
+ * @returns {Object | String} Decoded tidy Object/String
+ */
+function tidy(s) {
+  const tidy = typeof s === 'string'
+    ? s.replace( /[\x00-\x1F\x7F-\xA0]+/g, '' )
+    : s ;
+  return tidy;
+}
+
+/** Decodes hex of given type to it's corresponding object/value
+ * @param  {String} str1 Hex String to be decoded
+ * @returns {Object | String} Decoded Object/String
+ */
+function hex_to_ascii(str1) {
+  var hex  = str1.toString();
+  var str = '';
+  for (var n = 0; n < hex.length; n += 2) {
+    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+  }
+	return tidy(str);
+ }
+
+ /** Wrapper function that decodes hex of given type to it's corresponding object/value
+ */
+//  var tokenVCdecode = hex_to_ascii;
+//  hex_to_ascii = function(){
+//    tokenVCdecode();
+//  }
+
+ function getVCS(hexValue, typeKey) {
+    let vcs = decodeHex(hexValue, typeKey)
+    console.log(vcs)
+    vcs["token_name"] = hex_to_ascii(vcs.token_name)
+    vcs["currency_code"] = hex_to_ascii(vcs.currency_code)
+
+    return vcs
+
+ }
+
 module.exports = {
   METABLOCKCHAIN_TYPES,
   TOKEN_NAME_BYTES,
@@ -177,5 +215,7 @@ module.exports = {
   stringToBytes,
   encodeData,
   decodeHex,
-  vcHexToVcId
+  vcHexToVcId,
+  //tokenVCdecode,
+  getVCS,
 };

@@ -2,7 +2,6 @@ const { u8aToHex, hexToU8a, hexToString: polkadotHextoString, stringToU8a } = re
 const { base58Decode, blake2AsHex } = require('@polkadot/util-crypto');
 
 const types = require('@polkadot/types');
-const { Enum } = require('@polkadot/types');
 
 const METABLOCKCHAIN_TYPES = {
   "PeerId": "(Vec<>)",
@@ -74,7 +73,14 @@ const METABLOCKCHAIN_TYPES = {
   "TokenDetails": {
     "token_name": "Bytes",
     "currency_code": "Bytes",
-    "decimal": "u8"
+    "decimal": "u8",
+    "block_number": "BlockNumber"
+  },
+  "StorageVersion": {
+    "_enum": [
+      "V1_0_0",
+      "V2_0_0"
+    ]
   },
   "TokenBalance": "u128",
   "TokenAccountData": {

@@ -313,6 +313,7 @@ async function getTokenList(api = false) {
     name: value.toHuman().token_name,
     currencyCode: value.toHuman().currency_code,
     decimal: value.toHuman().decimal,
+    blockNumber: value.toHuman().block_number,
   }));
 }
 

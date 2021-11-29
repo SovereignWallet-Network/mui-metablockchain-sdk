@@ -264,8 +264,7 @@ async function getTokenBalance(did, currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
   const tokenData = await getTokenData(currencyCode, provider);
-  const currency_id = (await provider.query.tokens.tokenInfo(currencyCode)).toHuman();
-  const data = (await provider.query.tokens.accounts(did_hex, currency_id))
+  const data = (await provider.query.tokens.accounts(did_hex, currencyCode))
                   .toJSON().data.free/(Math.pow(10,tokenData.decimal));
   return data;
 }
@@ -281,8 +280,7 @@ async function getTokenBalance(did, currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
   const tokenData = await getTokenData(currencyCode, provider);
-  const currency_id = (await provider.query.tokens.tokenInfo(currencyCode)).toHuman();
-  const data = (await provider.query.tokens.accounts(did_hex, currency_id)).toJSON().data;
+  const data = (await provider.query.tokens.accounts(did_hex, currencyCode)).toJSON().data;
   return {
     frozen: data.frozen/(Math.pow(10,tokenData.decimal)),
     free: data.free/(Math.pow(10,tokenData.decimal)),
@@ -340,8 +338,7 @@ async function getTokenList(api = false) {
 async function getTokenTotalSupply(currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
   const tokenData = await getTokenData(currencyCode, provider);
-  const currency_id = (await provider.query.tokens.tokenInfo(currencyCode)).toHuman();
-  const data = await provider.query.tokens.totalIssuance(currency_id);
+  const data = await provider.query.tokens.totalIssuance(currencyCode);
   return data.toJSON()/(Math.pow(10,tokenData.decimal));
 }
 

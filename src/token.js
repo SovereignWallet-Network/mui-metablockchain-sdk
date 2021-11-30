@@ -85,6 +85,9 @@ async function issueToken(
       }
       const tokenData = await getTokenData(currencyId, provider);
       tokenAmount = tokenAmount * (Math.pow(10,tokenData.decimal));
+      if (tokenAmount < 1) {
+        throw new Error(`Invalid token amount, max supported decimal for this token is ${tokenData.decimal}`);
+      }
       const tx = provider.tx.tokens.transfer(receiverAccountID, currencyId, tokenAmount);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});

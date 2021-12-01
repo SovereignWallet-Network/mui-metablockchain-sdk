@@ -71,8 +71,8 @@ const METABLOCKCHAIN_TYPES = {
   "Hash": "H256",
   "Signature": "H512",
   "TokenDetails": {
-    "token_name": "Bytes",
-    "currency_code": "Bytes",
+    "token_name": "Vec<u8>",
+    "currency_code": "Vec<u8>",
     "decimal": "u8",
     "block_number": "BlockNumber"
   },

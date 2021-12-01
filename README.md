@@ -535,10 +535,10 @@ Fetch the history of rotated keys for the specified DID
 <dt><a href="#issueToken">issueToken(vcId, totalIssuanceAmt, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
 <dd><p>Issue new token from given vc Id. Amount is in lowest form here but everywhere else it's in highest form</p>
 </dd>
-<dt><a href="#transferToken">transferToken(recipentDid, currencyCode, tokenAmount, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
+<dt><a href="#transferToken">transferToken(recipentDid, currencyId, tokenAmount, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
 <dd><p>Transfer token with given token_id to the recipent_did</p>
 </dd>
-<dt><a href="#transferAll">transferAll(recipentDid, currencyCode, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
+<dt><a href="#transferAll">transferAll(recipentDid, currencyId, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
 <dd><p>Transfer all token with given vc_id to the recipent_did</p>
 </dd>
 <dt><a href="#slashToken">slashToken(vcId, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
@@ -547,25 +547,25 @@ Fetch the history of rotated keys for the specified DID
 <dt><a href="#mintToken">mintToken(vcId, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
 <dd><p>Mint token to given currency</p>
 </dd>
-<dt><a href="#getTokenBalance">getTokenBalance(did, currencyCode, api)</a> ⇒ <code>String</code></dt>
+<dt><a href="#getTokenBalance">getTokenBalance(did, currencyId, api)</a> ⇒ <code>String</code></dt>
 <dd><p>Get the token balance for a given token for given did</p>
 </dd>
-<dt><a href="#getDetailedTokenBalance">getDetailedTokenBalance(did, currencyCode, api)</a> ⇒ <code>Object</code></dt>
+<dt><a href="#getDetailedTokenBalance">getDetailedTokenBalance(did, currencyId, api)</a> ⇒ <code>Object</code></dt>
 <dd><p>Get the detailed token balance for a given token for given did</p>
 </dd>
-<dt><a href="#getTokenNameFromCurrencyId">getTokenNameFromCurrencyId(currencyCode, api)</a> ⇒ <code>tokenIdentifier</code></dt>
+<dt><a href="#getTokenNameFromCurrencyId">getTokenNameFromCurrencyId(currencyId, api)</a> ⇒ <code>tokenIdentifier</code></dt>
 <dd><p>Get the human friendly name of token from token id</p>
 </dd>
 <dt><a href="#getTokenList">getTokenList(api)</a> ⇒ <code>Array</code></dt>
 <dd><p>Get the list of all active tokens in metablockchain network</p>
 </dd>
-<dt><a href="#getTokenTotalSupply">getTokenTotalSupply(currencyCode, api)</a> ⇒ <code>String</code></dt>
+<dt><a href="#getTokenTotalSupply">getTokenTotalSupply(currencyId, api)</a> ⇒ <code>String</code></dt>
 <dd><p>Get the total issuance amount for given currency id</p>
 </dd>
-<dt><a href="#getLocks">getLocks(currencyCode, api)</a> ⇒ <code>Object</code></dt>
+<dt><a href="#getLocks">getLocks(currencyId, api)</a> ⇒ <code>Object</code></dt>
 <dd><p>Get the lock for given currency id</p>
 </dd>
-<dt><a href="#getTokenIssuer">getTokenIssuer(currencyCode, api)</a> ⇒ <code>String</code></dt>
+<dt><a href="#getTokenIssuer">getTokenIssuer(currencyId, api)</a> ⇒ <code>String</code></dt>
 <dd><p>Get the total issuance amount for given currency id</p>
 </dd>
 <dt><a href="#withdrawTreasuryReserve">withdrawTreasuryReserve(destination, from, amount, senderAccountKeyPair, api)</a> ⇒ <code>String</code></dt>
@@ -593,7 +593,7 @@ Issue new token from given vc Id.  Amount is in lowest form here but everywhere 
 
 <a name="transferToken"></a>
 
-## transferToken(recipentDid, currencyCode, tokenAmount, senderAccountKeyPair, api) ⇒ <code>hexString</code>
+## transferToken(recipentDid, currencyId, tokenAmount, senderAccountKeyPair, api) ⇒ <code>hexString</code>
 Transfer token with given token_id to the recipent_did
 
 **Kind**: global function  
@@ -601,14 +601,14 @@ Transfer token with given token_id to the recipent_did
 | Param | Type | Default |
 | --- | --- | --- |
 | recipentDid | <code>String</code> |  | 
-| currencyCode | <code>String</code> |  | 
+| currencyId | <code>String</code> |  | 
 | tokenAmount | <code>String</code> | In Highest Form | 
 | senderAccountKeyPair | <code>KeyPair</code> |  | 
 | api | <code>APIPromise</code> | <code>false</code> | 
 
 <a name="transferAll"></a>
 
-## transferAll(recipentDid, currencyCode, senderAccountKeyPair, api) ⇒ <code>hexString</code>
+## transferAll(recipentDid, currencyId, senderAccountKeyPair, api) ⇒ <code>hexString</code>
 Transfer all token with given vc_id to the recipent_did
 
 **Kind**: global function  
@@ -616,7 +616,7 @@ Transfer all token with given vc_id to the recipent_did
 | Param | Type | Default |
 | --- | --- | --- |
 | recipentDid | <code>String</code> |  | 
-| currencyCode | <code>String</code> |  | 
+| currencyId | <code>String</code> |  | 
 | senderAccountKeyPair | <code>KeyPair</code> |  | 
 | api | <code>APIPromise</code> | <code>false</code> | 
 
@@ -648,7 +648,7 @@ Mint token to given currency
 
 <a name="getTokenBalance"></a>
 
-## getTokenBalance(did, currencyCode, api) ⇒ <code>String</code>
+## getTokenBalance(did, currencyId, api) ⇒ <code>String</code>
 Get the token balance for a given token for given did
 
 **Kind**: global function  
@@ -657,12 +657,12 @@ Get the token balance for a given token for given did
 | Param | Type | Default |
 | --- | --- | --- |
 | did | <code>String</code> |  | 
-| currencyCode | <code>String</code> |  | 
+| currencyId | <code>String</code> |  | 
 | api | <code>ApiPromise</code> | <code>false</code> | 
 
 <a name="getDetailedTokenBalance"></a>
 
-## getDetailedTokenBalance(did, currencyCode, api) ⇒ <code>Object</code>
+## getDetailedTokenBalance(did, currencyId, api) ⇒ <code>Object</code>
 Get the detailed token balance for a given token for given did
 
 **Kind**: global function  
@@ -671,12 +671,12 @@ Get the detailed token balance for a given token for given did
 | Param | Type | Default |
 | --- | --- | --- |
 | did | <code>String</code> |  | 
-| currencyCode | <code>String</code> |  | 
+| currencyId | <code>String</code> |  | 
 | api | <code>ApiPromise</code> | <code>false</code> | 
 
 <a name="getTokenNameFromCurrencyId"></a>
 
-## getTokenNameFromCurrencyId(currencyCode, api) ⇒ <code>tokenIdentifier</code>
+## getTokenNameFromCurrencyId(currencyId, api) ⇒ <code>tokenIdentifier</code>
 Get the human friendly name of token from token id
 
 **Kind**: global function  
@@ -684,7 +684,7 @@ Get the human friendly name of token from token id
 
 | Param | Type | Default |
 | --- | --- | --- |
-| currencyCode | <code>String</code> |  | 
+| currencyId | <code>String</code> |  | 
 | api | <code>ApiPromise</code> | <code>false</code> | 
 
 <a name="getTokenList"></a>
@@ -701,7 +701,7 @@ Get the list of all active tokens in metablockchain network
 
 <a name="getTokenTotalSupply"></a>
 
-## getTokenTotalSupply(currencyCode, api) ⇒ <code>String</code>
+## getTokenTotalSupply(currencyId, api) ⇒ <code>String</code>
 Get the total issuance amount for given currency id
 
 **Kind**: global function  
@@ -709,31 +709,31 @@ Get the total issuance amount for given currency id
 
 | Param | Type | Default |
 | --- | --- | --- |
-| currencyCode | <code>String</code> |  | 
+| currencyId | <code>String</code> |  | 
 | api | <code>ApiPromise</code> | <code>false</code> | 
 
 <a name="getLocks"></a>
 
-## getLocks(currencyCode, api) ⇒ <code>Object</code>
+## getLocks(currencyId, api) ⇒ <code>Object</code>
 Get the lock for given currency id
 
 **Kind**: global function  
 
 | Param | Type | Default |
 | --- | --- | --- |
-| currencyCode | <code>String</code> |  | 
+| currencyId | <code>String</code> |  | 
 | api | <code>ApiPromise</code> | <code>false</code> | 
 
 <a name="getTokenIssuer"></a>
 
-## getTokenIssuer(currencyCode, api) ⇒ <code>String</code>
+## getTokenIssuer(currencyId, api) ⇒ <code>String</code>
 Get the total issuance amount for given currency id
 
 **Kind**: global function  
 
 | Param | Type | Default |
 | --- | --- | --- |
-| currencyCode | <code>String</code> |  | 
+| currencyId | <code>String</code> |  | 
 | api | <code>ApiPromise</code> | <code>false</code> | 
 
 <a name="withdrawTreasuryReserve"></a>
@@ -900,7 +900,7 @@ Encodes Token VC and pads with appropriate bytes
 | --- | --- | --- |
 | vcProperty | <code>Object</code> |  |
 | vcProperty.vcId | <code>String</code> |  |
-| vcProperty.currencyCode | <code>String</code> |  |
+| vcProperty.currencyId | <code>String</code> |  |
 | vcProperty.amount | <code>String</code> | In Highest Form |
 
 <a name="createTokenTransferVC"></a>
@@ -915,7 +915,7 @@ Encodes Token VC and pads with appropriate bytes
 | --- | --- | --- |
 | vcProperty | <code>Object</code> |  |
 | vcProperty.vcId | <code>String</code> |  |
-| vcProperty.currencyCode | <code>String</code> |  |
+| vcProperty.currencyId | <code>String</code> |  |
 | vcProperty.amount | <code>String</code> | In Highest Form |
 
 <a name="createVC"></a>

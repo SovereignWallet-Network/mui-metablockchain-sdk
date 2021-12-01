@@ -62,7 +62,7 @@ async function issueToken(
 /**
  * Transfer token with given token_id to the recipent_did
  * @param {String} recipentDid
- * @param {String} currencyCode
+ * @param {String} currencyId
  * @param {String} tokenAmount In Highest Form
  * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
@@ -70,7 +70,7 @@ async function issueToken(
  */
  async function transferToken(
   recipentDid,
-  currencyCode,
+  currencyId,
   tokenAmount,
   senderAccountKeyPair,
   api = false,
@@ -83,12 +83,12 @@ async function issueToken(
       if (!receiverAccountID) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
-      const tokenData = await getTokenData(currencyCode, provider);
+      const tokenData = await getTokenData(currencyId, provider);
       tokenAmount = tokenAmount * (Math.pow(10,tokenData.decimal));
       if (tokenAmount < 1) {
         throw new Error(`Invalid token amount, max supported decimal for this token is ${tokenData.decimal}`);
       }
-      const tx = provider.tx.tokens.transfer(receiverAccountID, currencyCode, tokenAmount);
+      const tx = provider.tx.tokens.transfer(receiverAccountID, currencyId, tokenAmount);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
       await signedTx.send(function ({ status, dispatchError }) {
@@ -120,14 +120,14 @@ async function issueToken(
 /**
  * Transfer all token with given vc_id to the recipent_did
  * @param {String} recipentDid
- * @param {String} currencyCode
+ * @param {String} currencyId
  * @param {KeyPair} senderAccountKeyPair
  * @param {APIPromise} api
  * @returns {hexString}
  */
  async function transferAll(
   recipentDid,
-  currencyCode,
+  currencyId,
   senderAccountKeyPair,
   api = false,
 ) {
@@ -139,7 +139,7 @@ async function issueToken(
       if (!receiverAccountID) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
-      const tx = provider.tx.tokens.transferAll(receiverAccountID, currencyCode);
+      const tx = provider.tx.tokens.transferAll(receiverAccountID, currencyId);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
       await signedTx.send(function ({ status, dispatchError }) {
@@ -259,15 +259,15 @@ async function mintToken(
 /**
  * Get the token balance for a given token for given did
  * @param {String} did
- * @param {String} currencyCode
+ * @param {String} currencyId
  * @param {ApiPromise} api
  * @returns {String} Balance In Highest Form
  */
-async function getTokenBalance(did, currencyCode, api = false) {
+async function getTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const tokenData = await getTokenData(currencyCode, provider);
-  const data = (await provider.query.tokens.accounts(did_hex, currencyCode))
+  const tokenData = await getTokenData(currencyId, provider);
+  const data = (await provider.query.tokens.accounts(did_hex, currencyId))
                   .toJSON().data.free/(Math.pow(10,tokenData.decimal));
   return data;
 }
@@ -275,15 +275,15 @@ async function getTokenBalance(did, currencyCode, api = false) {
 /**
  * Get the detailed token balance for a given token for given did
  * @param {String} did
- * @param {String} currencyCode
+ * @param {String} currencyId
  * @param {ApiPromise} api
  * @returns {Object} In Highest Form
  */
- async function getDetailedTokenBalance(did, currencyCode, api = false) {
+ async function getDetailedTokenBalance(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const tokenData = await getTokenData(currencyCode, provider);
-  const data = (await provider.query.tokens.accounts(did_hex, currencyCode)).toJSON().data;
+  const tokenData = await getTokenData(currencyId, provider);
+  const data = (await provider.query.tokens.accounts(did_hex, currencyId)).toJSON().data;
   return {
     frozen: data.frozen/(Math.pow(10,tokenData.decimal)),
     free: data.free/(Math.pow(10,tokenData.decimal)),
@@ -293,13 +293,13 @@ async function getTokenBalance(did, currencyCode, api = false) {
 
 /**
  * Get the human friendly name of token from token id
- * @param {String} currencyCode
+ * @param {String} currencyId
  * @param {ApiPromise} api
  * @returns {tokenData} {token_name: String, currency_code: String, decimal: String}
  */
-async function getTokenNameFromCurrencyId(currencyCode, api = false) {
+async function getTokenNameFromCurrencyId(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
-  const data = (await provider.query.tokens.tokenData(currencyCode)).toHuman();
+  const data = (await provider.query.tokens.tokenData(currencyId)).toHuman();
   return data;
 }
 
@@ -322,54 +322,54 @@ async function getTokenList(api = false) {
 
 /**
  * Get the token by currency id in metablockchain network
- * @param {String} currencyCode
+ * @param {String} currencyId
  * @param {ApiPromise} api
  * @returns {Object}
  */
- async function getTokenData(currencyCode, api = false) {
+ async function getTokenData(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
-  const data = await provider.query.tokens.tokenData(currencyCode);
+  const data = await provider.query.tokens.tokenData(currencyId);
   return data.toHuman();
 }
 
 /**
  * Get the total issuance amount for given currency id
- * @param {String} currencyCode
+ * @param {String} currencyId
  * @param {ApiPromise} api
  * @returns {String} TotalSupply In Highest Form
  */
-async function getTokenTotalSupply(currencyCode, api = false) {
+async function getTokenTotalSupply(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
-  const tokenData = await getTokenData(currencyCode, provider);
-  const data = await provider.query.tokens.totalIssuance(currencyCode);
+  const tokenData = await getTokenData(currencyId, provider);
+  const data = await provider.query.tokens.totalIssuance(currencyId);
   return data.toJSON()/(Math.pow(10,tokenData.decimal));
 }
 
 /**
  * Get the lock for given currency id
- * @param {String} currencyCode
+ * @param {String} currencyId
  * @param {ApiPromise} api
  * @returns {Object} 
  */
- async function getLocks(did, currencyCode, api = false) {
+ async function getLocks(did, currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
   const accountId = await resolveDIDToAccount(did, provider);
   if (!accountId) {
     throw new Error('tokens.RecipentDIDNotRegistered');
   }
-  const data = await provider.query.tokens.locks(accountId, currencyCode);
+  const data = await provider.query.tokens.locks(accountId, currencyId);
   return data.toHuman();
 }
 
 /**
  * Get the total issuance amount for given currency id
- * @param {String} currencyCode
+ * @param {String} currencyId
  * @param {ApiPromise} api
  * @returns {String}
  */
- async function getTokenIssuer(currencyCode, api = false) {
+ async function getTokenIssuer(currencyId, api = false) {
   const provider = api || (await buildConnection('local'));
-  const data = await provider.query.tokens.tokenIssuer(currencyCode);
+  const data = await provider.query.tokens.tokenIssuer(currencyId);
   return data.toHuman();
 }
 

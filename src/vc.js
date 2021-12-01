@@ -63,16 +63,16 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
 /** Encodes Token VC and pads with appropriate bytes
  * @param  {Object} vcProperty
  * @param  {String} vcProperty.vcId 
- * @param  {String} vcProperty.currencyCode
+ * @param  {String} vcProperty.currencyId
  * @param  {String} vcProperty.amount In Highest Form
  * @returns {String} Token VC Hex String
  */
- async function createMintSlashVC({ vcId, currencyCode, amount }, api=false) {
+ async function createMintSlashVC({ vcId, currencyId, amount }, api=false) {
   const provider = api || (await buildConnection('local'));
-  let tokenData = await getTokenData(currencyCode, provider);
+  let tokenData = await getTokenData(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
-    currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
+    currency_id: utils.encodeData(currencyId, 'CurrencyId'),
     amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
   };
   return utils.encodeData(vcProperty, 'SlashMintTokens')
@@ -82,16 +82,16 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
 /** Encodes Token VC and pads with appropriate bytes
  * @param  {Object} vcProperty
  * @param  {String} vcProperty.vcId 
- * @param  {String} vcProperty.currencyCode
+ * @param  {String} vcProperty.currencyId
  * @param  {String} vcProperty.amount In Highest Form
  * @returns {String} Token VC Hex String
  */
- async function createTokenTransferVC({ vcId, currencyCode, amount }, api=false) {
+ async function createTokenTransferVC({ vcId, currencyId, amount }, api=false) {
   const provider = api || (await buildConnection('local'));
-  let tokenData = await getTokenData(currencyCode, provider);
+  let tokenData = await getTokenData(currencyId, provider);
   let vcProperty = {
     vc_id: vcId,
-    currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
+    currency_id: utils.encodeData(currencyId, 'CurrencyId'),
     amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
   };
   return utils.encodeData(vcProperty, 'TokenTransferVC')

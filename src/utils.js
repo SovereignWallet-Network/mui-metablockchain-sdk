@@ -52,12 +52,12 @@ const METABLOCKCHAIN_TYPES = {
   },
   "SlashMintTokens": {
     "vc_id": "VCid",
-    "currency_id": "CurrencyId",
+    "currency_code": "CurrencyCode",
     "amount": "u128"
   },
   "TokenTransferVC": {
     "vc_id": "VCid",
-    "currency_id": "CurrencyId",
+    "currency_code": "CurrencyCode",
     "amount": "u128"
   },
   "VCHash": "Vec<u8>",
@@ -98,6 +98,14 @@ const METABLOCKCHAIN_TYPES = {
     "ayes": "Vec<Did>",
     "nays": "Vec<Did>",
     "end": "BlockNumber"
+  },
+  "CurrencyCode": "[u8;8]",
+  "StorageVersion": {
+    "_enum": [
+      "V1_0_0",
+      "V2_0_0",
+      "V3_0_0"
+    ]
   }
 }
 

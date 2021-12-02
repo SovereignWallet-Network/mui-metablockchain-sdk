@@ -65,7 +65,7 @@ async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil
 /**
  * Store VC without council
  * @param  {Hex} vcId
- * @param  {Number} currencyId
+ * @param  {Number} currencyCode
  * @param  {Number} amount
  * @param  {VCType} vcType TokenVc, MintTokens, SlashTokens
  * @param  {KeyPair} sigKeypairOwner
@@ -73,10 +73,10 @@ async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil
  * @param  {KeyPair} sigKeypairCouncil
  * @param  {Api} provider
  */
-async function storeVCDirectly(vcId, currencyId, amount, vcType, sigKeypairOwner, provider) {
+async function storeVCDirectly(vcId, currencyCode, amount, vcType, sigKeypairOwner, provider) {
   let vcProperty = {
     vcId,
-    currencyId,
+    currencyCode,
     amount,
   };
   let owner = TEST_DAVE_DID;

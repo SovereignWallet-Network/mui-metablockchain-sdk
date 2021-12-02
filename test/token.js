@@ -7,10 +7,10 @@ const { buildConnection } = require('../src/connection');
 const constants = require('./test_constants');
 const { expect } = require('chai');
 const did = require('../src/did');
-const { hexToString } = require('../src/utils');
+const { hexToString, encodeData, CURRENCY_CODE_BYTES } = require('../src/utils');
 const { removeDid, sudoStoreVC, storeVCDirectly } = require('./helper/helper');
 
-describe.only('Token Module works correctly', () => {
+describe('Token Module works correctly', () => {
   let sigKeypairRoot = null;
   let signKeypairOrgA;
   let sigKeypairMeta;
@@ -32,7 +32,7 @@ describe.only('Token Module works correctly', () => {
   // These test cases should only run in local environment
   if (constants.providerNetwork == 'local') {
     let vcId;
-    let currencyId;
+    let currencyCode;
 
     before(async () => {
       if (constants.providerNetwork == 'local') {
@@ -54,6 +54,7 @@ describe.only('Token Module works correctly', () => {
         try {
           await did.storeDIDOnChain(didObjDave, sigKeypairRoot, provider);
         } catch (err) { }
+        await tx.sendTransaction(sigKeypairRoot, TEST_ORG_A_DID, '20000000', provider);
         let tokenVC = {
           tokenName: 'Org_A',
           reservableBalance: 0.01,
@@ -86,7 +87,7 @@ describe.only('Token Module works correctly', () => {
 
     it('Get tokens list works correctly', async () => {
       let tokensList = await token.getTokenList(provider);
-      currencyId = tokensList[0].id;
+      currencyCode = encodeData('OTH'.padEnd(CURRENCY_CODE_BYTES, '\0'), 'currency_code');
       tokensList.forEach(item => {
         expect(item).to.haveOwnProperty('id');
         expect(item).to.haveOwnProperty('name');
@@ -97,47 +98,47 @@ describe.only('Token Module works correctly', () => {
     });
 
     it('Get Token Balance works correctly', async () => {
-      let balance = await token.getTokenBalance(TEST_ORG_A_DID, currencyId, provider);
+      let balance = await token.getTokenBalance(TEST_ORG_A_DID, currencyCode, provider);
       assert.strictEqual(balance, 10);
     });
 
     it('Get Detailed Token Balance works correctly', async () => {
-      let balance = await token.getDetailedTokenBalance(TEST_ORG_A_DID, currencyId, provider);
+      let balance = await token.getDetailedTokenBalance(TEST_ORG_A_DID, currencyCode, provider);
       assert.strictEqual(balance.free, 10);
       assert.strictEqual(balance.reserved, 0);
       assert.strictEqual(balance.frozen, 0);
     });
 
     it('Get Token Name from currency id works correctly', async () => {
-      let tokenIdentifier = await token.getTokenNameFromCurrencyId(currencyId, provider);
+      let tokenIdentifier = await token.getTokenNameFromCurrencyId(currencyCode, provider);
       assert.strictEqual(tokenIdentifier.token_name, 'Org_A');
     });
 
     it('Get tokens total supply works correctly', async () => {
-      let tokensSupply = await token.getTokenTotalSupply(currencyId, provider);
+      let tokensSupply = await token.getTokenTotalSupply(currencyCode, provider);
       assert.strictEqual(tokensSupply, 10);
     });
 
     it('Get locks works correctly', async () => {
-      let locks = await token.getLocks(TEST_META_DID, currencyId, provider);
+      let locks = await token.getLocks(TEST_META_DID, currencyCode, provider);
       assert.strictEqual(locks.length, 0);
     });
 
     it('Get token issuer works correctly', async () => {
-      let issuer = await token.getTokenIssuer(currencyId, provider);
+      let issuer = await token.getTokenIssuer(currencyCode, provider);
       decodeIssuer = hexToString(issuer);
       assert.strictEqual(decodeIssuer, TEST_ORG_A_DID);
     });
 
     it('Mint Token works correctly', async () => {
-      await storeVCDirectly(vcId, currencyId, 1, "MintTokens", signKeypairOrgA, provider);
+      await storeVCDirectly(vcId, currencyCode, 1, "MintTokens", signKeypairOrgA, provider);
       let mintVcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[1];
       const transaction = await token.mintToken(mintVcId, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
     });
 
     it('Get Token Balance after mint token works correctly', async () => {
-      let balance = await token.getTokenBalance(TEST_ORG_A_DID, currencyId, provider);
+      let balance = await token.getTokenBalance(TEST_ORG_A_DID, currencyCode, provider);
       assert.strictEqual(balance, 11);
     });
 
@@ -147,51 +148,51 @@ describe.only('Token Module works correctly', () => {
     });
 
     it('Slash Token works correctly', async () => {
-      await storeVCDirectly(vcId, currencyId, 1, "SlashTokens", signKeypairOrgA, provider);
+      await storeVCDirectly(vcId, currencyCode, 1, "SlashTokens", signKeypairOrgA, provider);
       let slashVcId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[2];
       const transaction = await token.slashToken(slashVcId, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
     });
 
     it('Get Token Balance after slash token works correctly', async () => {
-      let balance = await token.getTokenBalance(TEST_ORG_A_DID, currencyId, provider);
+      let balance = await token.getTokenBalance(TEST_ORG_A_DID, currencyCode, provider);
       assert.strictEqual(balance, 10);
     });
 
     it('Transfer Token With VC works correctly', async () => {
-      await storeVCDirectly(vcId, currencyId, 1, "TokenTransferVC", signKeypairOrgA, provider);
+      await storeVCDirectly(vcId, currencyCode, 1, "TokenTransferVC", signKeypairOrgA, provider);
       let transferVCId = (await vc.getVCIdsByDID(TEST_ORG_A_DID))[3];
       const transaction = await token.transferTokenWithVC(transferVCId, TEST_SWN_DID, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
     });
 
     it('Get Token Balance after transfer token with vc works correctly', async () => {
-      let balance = await token.getTokenBalance(TEST_SWN_DID, currencyId, provider);
+      let balance = await token.getTokenBalance(TEST_SWN_DID, currencyCode, provider);
       assert.strictEqual(balance, 1);
     });
 
     it('Token transfer works correctly', async () => {
-      const transaction = await token.transferToken(TEST_SWN_DID, currencyId, 0.01, signKeypairOrgA, provider);
+      const transaction = await token.transferToken(TEST_SWN_DID, currencyCode, 0.01, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
     });
 
     it('Get Token Balance after transfer works correctly', async () => {
-      let balance = await token.getTokenBalance(TEST_SWN_DID, currencyId, provider);
+      let balance = await token.getTokenBalance(TEST_SWN_DID, currencyCode, provider);
       assert.strictEqual(balance, 1.01);
     });
 
     it('Token transfer all works correctly', async () => {
-      const transaction = await token.transferAll(TEST_SWN_DID, currencyId, signKeypairOrgA, provider);
+      const transaction = await token.transferAll(TEST_SWN_DID, currencyCode, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);
     });
 
     it('Get Token Balance after transfer all works correctly', async () => {
-      let balance = await token.getTokenBalance(TEST_SWN_DID, currencyId, provider);
+      let balance = await token.getTokenBalance(TEST_SWN_DID, currencyCode, provider);
       assert.strictEqual(balance, 10);
     });
 
     it('Tokens total supply is unchanged', async () => {
-      let tokensSupply = await token.getTokenTotalSupply(currencyId, provider);
+      let tokensSupply = await token.getTokenTotalSupply(currencyCode, provider);
       assert.strictEqual(tokensSupply, 10);
     });
   }
@@ -199,9 +200,9 @@ describe.only('Token Module works correctly', () => {
 
   after(async () => {
     // Delete created DID
-    if (constants.providerNetwork == 'local') {
-      await removeDid(TEST_META_DID, sigKeypairRoot, provider);
-      await removeDid(TEST_ORG_A_DID, sigKeypairRoot, provider);
-    }
+    // if (constants.providerNetwork == 'local') {
+    //   await removeDid(TEST_META_DID, sigKeypairRoot, provider);
+    //   await removeDid(TEST_ORG_A_DID, sigKeypairRoot, provider);
+    // }
   });
 });

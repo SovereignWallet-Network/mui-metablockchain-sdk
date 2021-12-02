@@ -8,7 +8,8 @@
 const { resolveDIDToAccount } = require('./did');
 const { buildConnection } = require('./connection.js');
 const { sanitiseDid } = require('./did');
-
+// 8 bytes for currency_code
+const CURRENCY_CODE_LENGTH = 16;
 /**
  * Issue new token from given vc Id. Amount is in lowest form here 
  * but everywhere else it's in highest form
@@ -83,12 +84,13 @@ async function issueToken(
       if (!receiverAccountID) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
-      const tokenData = await getTokenData(currencyCode, provider);
+      const ccode = sanitiseCCode(currencyCode);
+      const tokenData = await getTokenData(ccode, provider);
       tokenAmount = tokenAmount * (Math.pow(10,tokenData.decimal));
       if (tokenAmount < 1) {
         throw new Error(`Invalid token amount, max supported decimal for this token is ${tokenData.decimal}`);
       }
-      const tx = provider.tx.tokens.transfer(receiverAccountID, currencyCode, tokenAmount);
+      const tx = provider.tx.tokens.transfer(receiverAccountID, ccode, tokenAmount);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
       await signedTx.send(function ({ status, dispatchError }) {
@@ -139,7 +141,7 @@ async function issueToken(
       if (!receiverAccountID) {
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
-      const tx = provider.tx.tokens.transferAll(receiverAccountID, currencyCode);
+      const tx = provider.tx.tokens.transferAll(receiverAccountID, sanitiseCCode(currencyCode));
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
       await signedTx.send(function ({ status, dispatchError }) {
@@ -266,8 +268,9 @@ async function mintToken(
 async function getTokenBalance(did, currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const tokenData = await getTokenData(currencyCode, provider);
-  const data = (await provider.query.tokens.accounts(did_hex, currencyCode))
+  const ccode = sanitiseCCode(currencyCode);
+  const tokenData = await getTokenData(ccode, provider);
+  const data = (await provider.query.tokens.accounts(did_hex, ccode))
                   .toJSON().data.free/(Math.pow(10,tokenData.decimal));
   return data;
 }
@@ -282,25 +285,14 @@ async function getTokenBalance(did, currencyCode, api = false) {
  async function getDetailedTokenBalance(did, currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(did);
-  const tokenData = await getTokenData(currencyCode, provider);
-  const data = (await provider.query.tokens.accounts(did_hex, currencyCode)).toJSON().data;
+  const ccode = sanitiseCCode(currencyCode);
+  const tokenData = await getTokenData(ccode, provider);
+  const data = (await provider.query.tokens.accounts(did_hex, ccode)).toJSON().data;
   return {
     frozen: data.frozen/(Math.pow(10,tokenData.decimal)),
     free: data.free/(Math.pow(10,tokenData.decimal)),
     reserved: data.reserved/(Math.pow(10,tokenData.decimal)),
   };
-}
-
-/**
- * Get the human friendly name of token from token id
- * @param {String} currencyCode
- * @param {ApiPromise} api
- * @returns {tokenData} {token_name: String, currency_code: String, decimal: String}
- */
-async function getTokenNameFromCurrencyId(currencyCode, api = false) {
-  const provider = api || (await buildConnection('local'));
-  const data = (await provider.query.tokens.tokenData(currencyCode)).toHuman();
-  return data;
 }
 
 /**
@@ -311,8 +303,7 @@ async function getTokenNameFromCurrencyId(currencyCode, api = false) {
 async function getTokenList(api = false) {
   const provider = api || (await buildConnection('local'));
   const data = await provider.query.tokens.tokenData.entries();
-  return data.map(([{ args: [CurrencyId] }, value]) => ({
-    id: CurrencyId.toHuman(),
+  return data.map(([{ args: [currency_code] }, value]) => ({
     name: value.toHuman().token_name,
     currencyCode: value.toHuman().currency_code,
     decimal: value.toHuman().decimal,
@@ -328,7 +319,7 @@ async function getTokenList(api = false) {
  */
  async function getTokenData(currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
-  const data = await provider.query.tokens.tokenData(currencyCode);
+  const data = await provider.query.tokens.tokenData(sanitiseCCode(currencyCode));
   return data.toHuman();
 }
 
@@ -340,8 +331,8 @@ async function getTokenList(api = false) {
  */
 async function getTokenTotalSupply(currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
-  const tokenData = await getTokenData(currencyCode, provider);
-  const data = await provider.query.tokens.totalIssuance(currencyCode);
+  const tokenData = await getTokenData(sanitiseCCode(currencyCode), provider);
+  const data = await provider.query.tokens.totalIssuance(sanitiseCCode(currencyCode));
   return data.toJSON()/(Math.pow(10,tokenData.decimal));
 }
 
@@ -357,19 +348,19 @@ async function getTokenTotalSupply(currencyCode, api = false) {
   if (!accountId) {
     throw new Error('tokens.RecipentDIDNotRegistered');
   }
-  const data = await provider.query.tokens.locks(accountId, currencyCode);
+  const data = await provider.query.tokens.locks(accountId, sanitiseCCode(currencyCode));
   return data.toHuman();
 }
 
 /**
- * Get the total issuance amount for given currency id
+ * Get the issuer for given token code
  * @param {String} currencyCode
  * @param {ApiPromise} api
  * @returns {String}
  */
  async function getTokenIssuer(currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
-  const data = await provider.query.tokens.tokenIssuer(currencyCode);
+  const data = await provider.query.tokens.tokenIssuer(sanitiseCCode(currencyCode));
   return data.toHuman();
 }
 
@@ -481,6 +472,26 @@ async function withdrawTreasuryReserve(
   });
 }
 
+/**
+ * Checks if the given currency_code is in hex format or not & converts it into valid hex format.
+ * 
+ *  Note: This util function is needed since dependant module wont convert the utf did to hex anymore
+ * 
+ * @param {String} currency_code
+ * @return {String} Hex currency_code
+ */
+ const sanitiseCCode = (code) => {
+  
+  if (code.startsWith('0x')) {
+    // already hex string
+    return code.padEnd(CURRENCY_CODE_LENGTH, '0');
+  }
+  // console.log('Converting to hex');
+  let hex_code = Buffer.from(code, 'utf8').toString('hex');
+  hex_code = '0x'+ hex_code.padEnd(CURRENCY_CODE_LENGTH, '0');
+  return hex_code;
+}
+
 module.exports = {
   transferToken,
   transferAll,
@@ -489,7 +500,6 @@ module.exports = {
   mintToken,
   getTokenBalance,
   getDetailedTokenBalance,
-  getTokenNameFromCurrencyId,
   getLocks,
   getTokenIssuer,
   getTokenList,
@@ -497,4 +507,5 @@ module.exports = {
   getTokenTotalSupply,
   withdrawTreasuryReserve,
   transferTokenWithVC,
+  sanitiseCCode,
 };

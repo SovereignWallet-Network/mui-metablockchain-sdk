@@ -18,7 +18,7 @@
  *   "signature" : "The signature of the verifier, verifying the hash"
  * }
  */
-const { signatureVerify, blake2AsHex, blake2AsU8a } = require('@polkadot/util-crypto');
+const { signatureVerify, blake2AsHex } = require('@polkadot/util-crypto');
 const sha256 = require('js-sha256');
 const { getDIDDetails, getDidKeyHistory, isDidValidator } = require('./did');
 const { buildConnection } = require('./connection.js');
@@ -47,8 +47,13 @@ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
   if(!currencyCode) {
     throw new Error('Currency code is required');
   }
+  // Removing extra spaces
+  currencyCode = currencyCode.replace(/ /g, '');
   if(currencyCode.length > utils.CURRENCY_CODE_BYTES) {
     throw new Error('Currency Code should not exceed 8 chars');
+  }
+  if(!utils.isUpperAndValid(currencyCode)){
+    throw new Error('Only Upper case characters are allowed for currency code');
   }
   let vcProperty = {
     token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),

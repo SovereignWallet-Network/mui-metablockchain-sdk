@@ -176,6 +176,14 @@ function decodeHex(hexValue, typeKey) {
   return types.createType(registry, typeKey, hexValue).toJSON();
 }
 
+/** Checks if str is upper and only contains characters
+ * @param  {} str
+ * @returns bool
+ */
+function isUpperAndValid(str) {
+  return /^[A-Z]+$/.test(str);
+}
+
 /** regex to remove unwanted hex bytes
  * @param  {String} s Hex String to make tidy
  * @returns {Object | String} Decoded tidy Object/String
@@ -232,4 +240,5 @@ module.exports = {
   vcHexToVcId,
   //tokenVCdecode,
   getVCS,
+  isUpperAndValid,
 };

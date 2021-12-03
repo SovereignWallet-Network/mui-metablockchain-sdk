@@ -38,7 +38,7 @@ describe('VC works correctly', () => {
       tokenName: 'test',
       reservableBalance: 1000,
       decimal: 6,
-      currencyCode: 'OTH',
+      currencyCode: 'OT H ',
     };
     let owner = TEST_DID;
     let issuers = [
@@ -99,6 +99,30 @@ describe('VC works correctly', () => {
       await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     } catch (e) {
       assert.strictEqual(e.message, "Token name should not exceed 16 chars");
+    }
+  });
+
+  it('VC creation fails when currency code is not valid', async () => {
+    let tokenVC = {
+      tokenName: 'test',
+      reservableBalance: 1000,
+      currencyCode: 'abc'
+    };
+    let owner = TEST_DID;
+    let issuers = [
+      TEST_SWN_DID,
+      EVE_DID,
+    ];
+    try {
+      await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+    } catch (e) {
+      assert.strictEqual(e.message, "Only Upper case characters are allowed for currency code");
+    }
+    tokenVC.currencyCode = 'ABC12';
+    try {
+      await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+    } catch (e) {
+      assert.strictEqual(e.message, "Only Upper case characters are allowed for currency code");
     }
   });
 

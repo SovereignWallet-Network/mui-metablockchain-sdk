@@ -55,11 +55,13 @@ describe('Token Module works correctly', () => {
           await did.storeDIDOnChain(didObjDave, sigKeypairRoot, provider);
         } catch (err) { }
         await tx.sendTransaction(sigKeypairRoot, TEST_ORG_A_DID, '20000000', provider);
+
+        currencyCode = 'OTH';
         let tokenVC = {
           tokenName: 'Org_A',
           reservableBalance: 0.01,
           decimal: 6,
-          currencyCode: 'OTH',
+          currencyCode,
         };
         let owner = TEST_ORG_A_DID;
         let issuers = [
@@ -87,9 +89,7 @@ describe('Token Module works correctly', () => {
 
     it('Get tokens list works correctly', async () => {
       let tokensList = await token.getTokenList(provider);
-      currencyCode = encodeData('OTH'.padEnd(CURRENCY_CODE_BYTES, '\0'), 'currency_code');
       tokensList.forEach(item => {
-        expect(item).to.haveOwnProperty('id');
         expect(item).to.haveOwnProperty('name');
         expect(item).to.haveOwnProperty('currencyCode');
         expect(item).to.haveOwnProperty('decimal');
@@ -107,11 +107,6 @@ describe('Token Module works correctly', () => {
       assert.strictEqual(balance.free, 10);
       assert.strictEqual(balance.reserved, 0);
       assert.strictEqual(balance.frozen, 0);
-    });
-
-    it('Get Token Name from currency id works correctly', async () => {
-      let tokenIdentifier = await token.getTokenNameFromCurrencyId(currencyCode, provider);
-      assert.strictEqual(tokenIdentifier.token_name, 'Org_A');
     });
 
     it('Get tokens total supply works correctly', async () => {
@@ -200,9 +195,9 @@ describe('Token Module works correctly', () => {
 
   after(async () => {
     // Delete created DID
-    // if (constants.providerNetwork == 'local') {
-    //   await removeDid(TEST_META_DID, sigKeypairRoot, provider);
-    //   await removeDid(TEST_ORG_A_DID, sigKeypairRoot, provider);
-    // }
+    if (constants.providerNetwork == 'local') {
+      await removeDid(TEST_META_DID, sigKeypairRoot, provider);
+      await removeDid(TEST_ORG_A_DID, sigKeypairRoot, provider);
+    }
   });
 });

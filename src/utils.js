@@ -2,6 +2,8 @@ const { u8aToHex, hexToU8a, hexToString: polkadotHextoString, stringToU8a } = re
 const { base58Decode, blake2AsHex } = require('@polkadot/util-crypto');
 
 const types = require('@polkadot/types');
+const Enum = require('enum')
+const VCType = new Enum({'TokenVC': 'TokenVC', 'MintTokens': 'MintTokens', 'SlashTokens': 'SlashTokens', 'TokenTransferVC': 'TokenTransferVC', 'SlashMintTokens': 'SlashMintTokens'});
 
 const METABLOCKCHAIN_TYPES = {
   "PeerId": "(Vec<>)",
@@ -208,22 +210,51 @@ function hex_to_ascii(str1) {
 	return tidy(str);
  }
 
- /** Wrapper function that decodes hex of given type to it's corresponding object/value
+ /** function that decodes hex of createTokenVC
+ * @param  {String} hexValue Hex String to be decoded
+ * @param  {String} typeKey Key from METABLOCKCHAIN_TYPES which represents type of data
+ * @returns {Object | String} Decoded Object/String
  */
-//  var tokenVCdecode = hex_to_ascii;
-//  hex_to_ascii = function(){
-//    tokenVCdecode();
-//  }
-
  function getVCS(hexValue, typeKey) {
-    let vcs = decodeHex(hexValue, typeKey)
-    console.log(vcs)
-    vcs["token_name"] = hex_to_ascii(vcs.token_name)
-    vcs["currency_code"] = hex_to_ascii(vcs.currency_code)
-
-    return vcs
-
+  let vcs = decodeHex(hexValue, typeKey);
+  if(Boolean(vcs.token_name))
+    vcs["token_name"] = hexToString(vcs.token_name);
+  if(Boolean(vcs.currency_code))
+    vcs["currency_code"] = hexToString(vcs.currency_code);
+  return vcs;
  }
+
+  /** function that decodes hex of createVC where type is TokenVC to it's corresponding object/value
+ * @param  {String} hexValue Hex String to be decoded
+ * @param  {String} typeKey Key from METABLOCKCHAIN_TYPES which represents type of data
+ * @returns {Object | String} Decoded Object/String
+ */
+ function decodeVC(hexValue, typeKey) {
+  let vcs = decodeHex(hexValue, typeKey);
+  vcs["owner"] = hexToString(vcs.owner);
+  let issuer_did = [];
+  for(let i=0; i<vcs.issuers.length; i++){
+    issuer_did.push(hexToString(vcs.issuers[i]));
+  }
+  vcs["issuers"] = issuer_did;
+  switch(vcs.vc_type) {
+    case VCType.MintTokens.value:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.SlashMintTokens.value);
+      break;
+    case VCType.TokenVC.value:
+      vcs["vc_property"] = getVCS(vcs.vc_property, vcs.vc_type);
+      break;
+    case VCType.SlashTokens.value:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.SlashMintTokens.value);
+      break;
+    case VCType.TokenTransferVC.value:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.TokenTransferVC.value);
+      break;
+    default:
+      throw new Error("Unknown  Type");
+  }
+  return vcs;
+}
 
 module.exports = {
   METABLOCKCHAIN_TYPES,
@@ -238,7 +269,9 @@ module.exports = {
   encodeData,
   decodeHex,
   vcHexToVcId,
-  //tokenVCdecode,
-  getVCS,
   isUpperAndValid,
+  getVCS,
+  VCType,
+  decodeVC
+
 };

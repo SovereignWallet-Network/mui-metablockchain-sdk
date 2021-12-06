@@ -3,7 +3,7 @@ const { base58Decode, blake2AsHex } = require('@polkadot/util-crypto');
 
 const types = require('@polkadot/types');
 const Enum = require('enum')
-const EnumVal = new Enum({'TokenVC': 'TokenVC', 'MintTokens': 'MintTokens', 'SlashTokens': 'SlashTokens', 'TokenTransferVC': 'TokenTransferVC', 'SlashMintTokens': 'SlashMintTokens'});
+const VCType = new Enum({'TokenVC': 'TokenVC', 'MintTokens': 'MintTokens', 'SlashTokens': 'SlashTokens', 'TokenTransferVC': 'TokenTransferVC', 'SlashMintTokens': 'SlashMintTokens'});
 
 const METABLOCKCHAIN_TYPES = {
   "PeerId": "(Vec<>)",
@@ -229,7 +229,7 @@ function hex_to_ascii(str1) {
  * @param  {String} typeKey Key from METABLOCKCHAIN_TYPES which represents type of data
  * @returns {Object | String} Decoded Object/String
  */
- function decodeVCprop(hexValue, typeKey) {
+ function decodeVC(hexValue, typeKey) {
   let vcs = decodeHex(hexValue, typeKey);
   vcs["owner"] = hexToString(vcs.owner);
   let issuer_did = [];
@@ -238,17 +238,17 @@ function hex_to_ascii(str1) {
   }
   vcs["issuers"] = issuer_did;
   switch(vcs.vc_type) {
-    case EnumVal.MintTokens.value:
-      vcs["vc_property"] = getVCS(vcs.vc_property, EnumVal.SlashMintTokens.value);
+    case VCType.MintTokens.value:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.SlashMintTokens.value);
       break;
-    case EnumVal.TokenVC.value:
+    case VCType.TokenVC.value:
       vcs["vc_property"] = getVCS(vcs.vc_property, vcs.vc_type);
       break;
-    case EnumVal.SlashTokens.value:
-      vcs["vc_property"] = getVCS(vcs.vc_property, EnumVal.SlashMintTokens.value);
+    case VCType.SlashTokens.value:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.SlashMintTokens.value);
       break;
-    case EnumVal.TokenTransferVC.value:
-      vcs["vc_property"] = getVCS(vcs.vc_property, EnumVal.TokenTransferVC.value);
+    case VCType.TokenTransferVC.value:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.TokenTransferVC.value);
       break;
     default:
       throw new Error("Unknown  Type");
@@ -271,7 +271,7 @@ module.exports = {
   vcHexToVcId,
   isUpperAndValid,
   getVCS,
-  EnumVal,
-  decodeVCprop
+  VCType,
+  decodeVC
 
 };

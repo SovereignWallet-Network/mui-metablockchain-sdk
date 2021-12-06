@@ -18,139 +18,141 @@
  *   "signature" : "The signature of the verifier, verifying the hash"
  * }
  */
-const { signatureVerify, blake2AsHex } = require('@polkadot/util-crypto');
-const sha256 = require('js-sha256');
-const { getDIDDetails, getDidKeyHistory, isDidValidator } = require('./did');
-const { buildConnection } = require('./connection.js');
-const { doesSchemaExist } = require('./schema.js');
-const { sanitiseDid } = require('./did');
-const did = require('../src/did.js');
-const utils = require('../src/utils');
-const { getTokenData } = require('./token');
-
-
-/** Encodes Token VC and pads with appropriate bytes
- * @param  {Object} TokenVC
- * @param  {String} TokenVC.tokenName 
- * @param  {String} TokenVC.reservableBalance In Highest Form
- * @param  {String} TokenVC.decimal 
- * @param  {String} TokenVC.currencyCode 
- * @returns {String} Token VC Hex String
- */
-function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
-  if(!tokenName) {
-    throw new Error('Token name is required');
-  }
-  if(tokenName.length > utils.TOKEN_NAME_BYTES) {
-    throw new Error('Token name should not exceed 16 chars');
-  }
-  if(!currencyCode) {
-    throw new Error('Currency code is required');
-  }
-  // Removing extra spaces
-  currencyCode = currencyCode.replace(/ /g, '');
-  if(currencyCode.length > utils.CURRENCY_CODE_BYTES) {
-    throw new Error('Currency Code should not exceed 8 chars');
-  }
-  if(!utils.isUpperAndValid(currencyCode)){
-    throw new Error('Only Upper case characters are allowed for currency code');
-  }
-  let vcProperty = {
-    token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
-    reservable_balance: utils.encodeData(reservableBalance*(Math.pow(10,decimal)), 'Balance'),
-    decimal: utils.encodeData(decimal, 'decimal'),
-    currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'currency_code'),
-  };
-  return utils.encodeData(vcProperty, 'TokenVC')
-    .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
-}
-
-/** Encodes Token VC and pads with appropriate bytes
- * @param  {Object} vcProperty
- * @param  {String} vcProperty.vcId 
- * @param  {String} vcProperty.currencyCode
- * @param  {String} vcProperty.amount In Highest Form
- * @returns {String} Token VC Hex String
- */
- async function createMintSlashVC({ vcId, currencyCode, amount }, api=false) {
-  const provider = api || (await buildConnection('local'));
-  let tokenData = await getTokenData(currencyCode, provider);
-  let vcProperty = {
-    vc_id: vcId,
-    currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
-    amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
-  };
-  return utils.encodeData(vcProperty, 'SlashMintTokens')
-    .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
-}
-
-/** Encodes Token VC and pads with appropriate bytes
- * @param  {Object} vcProperty
- * @param  {String} vcProperty.vcId 
- * @param  {String} vcProperty.currencyCode
- * @param  {String} vcProperty.amount In Highest Form
- * @returns {String} Token VC Hex String
- */
- async function createTokenTransferVC({ vcId, currencyCode, amount }, api=false) {
-  const provider = api || (await buildConnection('local'));
-  let tokenData = await getTokenData(currencyCode, provider);
-  let vcProperty = {
-    vc_id: vcId,
-    currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
-    amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
-  };
-  return utils.encodeData(vcProperty, 'TokenTransferVC')
-    .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
-}
-
-/**
- * Create VC
- * @param  {Object} vcProperty
- * @param  {String} owner Did
- * @param  {String[]} issuers Array of Did
- * @param  {String} vcType TokenVC, MintTokens, SlashTokens, TokenTransferVC
- * @param  {KeyPair} sigKeypair Owner Key Ring pair
- * @returns {String} VC Hex String
- */
-async function createVC(vcProperty, owner, issuers, vcType, sigKeypair, api=false) {
-  let encodedVCProperty;
-  switch (vcType) {
-    case "TokenVC":
-      encodedVCProperty = createTokenVC(vcProperty);
-      break;
-    case "MintTokens":
-    case "SlashTokens":
-      encodedVCProperty = await createMintSlashVC(vcProperty, api);
-      break;
-    case "TokenTransferVC":
-      encodedVCProperty = await createTokenTransferVC(vcProperty, api);
-      break;
-    default:
-      throw new Error("Unknown VC Type");
-  }
-  owner = did.sanitiseDid(owner);
-  issuers = issuers.map(issuer => did.sanitiseDid(issuer));
-  const encodedData = utils.encodeData({
-    vc_type: vcType,
-    vc_property: encodedVCProperty,
-    owner,
-    issuers,
-  }, "VC_HEX");
-  const hash = blake2AsHex(encodedData);
-  const sign = utils.bytesToHex(sigKeypair.sign(hash));
-  let vcObject = {
-    hash,
-    owner,
-    issuers,
-    signatures: [sign],
-    is_vc_used: false,
-    vc_type: vcType,
-    vc_property: encodedVCProperty,
-  };
-  return utils.encodeData(vcObject, 'VC');
-}
-
-/**
+ const { signatureVerify, blake2AsHex } = require('@polkadot/util-crypto');
+ const sha256 = require('js-sha256');
+ const { getDIDDetails, getDidKeyHistory, isDidValidator } = require('./did');
+ const { buildConnection } = require('./connection.js');
+ const { doesSchemaExist } = require('./schema.js');
+ const { sanitiseDid } = require('./did');
+ const did = require('../src/did.js');
+ const utils = require('../src/utils');
+ const { getTokenData } = require('./token');
+ 
+ 
+ /** Encodes Token VC and pads with appropriate bytes
+  * @param  {Object} TokenVC
+  * @param  {String} TokenVC.tokenName 
+  * @param  {String} TokenVC.reservableBalance In Highest Form
+  * @param  {String} TokenVC.decimal 
+  * @param  {String} TokenVC.currencyCode 
+  * @returns {String} Token VC Hex String
+  */
+ function createTokenVC({ tokenName, reservableBalance, decimal, currencyCode}) {
+   if(!tokenName) {
+     throw new Error('Token name is required');
+   }
+   if(tokenName.length > utils.TOKEN_NAME_BYTES) {
+     throw new Error('Token name should not exceed 16 chars');
+   }
+   if(!currencyCode) {
+     throw new Error('Currency code is required');
+   }
+   // Removing extra spaces
+   currencyCode = currencyCode.replace(/ /g, '');
+   if(currencyCode.length > utils.CURRENCY_CODE_BYTES) {
+     throw new Error('Currency Code should not exceed 8 chars');
+   }
+   if(!utils.isUpperAndValid(currencyCode)){
+     throw new Error('Only Upper case characters are allowed for currency code');
+   }
+   let vcProperty = {
+     token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
+     reservable_balance: utils.encodeData(reservableBalance*(Math.pow(10,decimal)), 'Balance'),
+     decimal: utils.encodeData(decimal, 'decimal'),
+     currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'currency_code'),
+   };
+   return utils.encodeData(vcProperty, 'TokenVC')
+     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
+ }
+ 
+ /** Encodes Token VC and pads with appropriate bytes
+  * @param  {Object} vcProperty
+  * @param  {String} vcProperty.vcId 
+  * @param  {String} vcProperty.currencyCode
+  * @param  {String} vcProperty.amount In Highest Form
+  * @returns {String} Token VC Hex String
+  */
+  async function createMintSlashVC({ vcId, currencyCode, amount }, api=false) {
+   const provider = api || (await buildConnection('local'));
+   let tokenData = await getTokenData(currencyCode, provider);
+   let vcProperty = {
+     vc_id: vcId,
+     currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
+     amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
+   };
+   return utils.encodeData(vcProperty, 'SlashMintTokens')
+     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
+ }
+ 
+ /** Encodes Token VC and pads with appropriate bytes
+  * @param  {Object} vcProperty
+  * @param  {String} vcProperty.vcId 
+  * @param  {String} vcProperty.currencyCode
+  * @param  {String} vcProperty.amount In Highest Form
+  * @returns {String} Token VC Hex String
+  */
+  async function createTokenTransferVC({ vcId, currencyCode, amount }, api=false) {
+   const provider = api || (await buildConnection('local'));
+   let tokenData = await getTokenData(currencyCode, provider);
+   let vcProperty = {
+     vc_id: vcId,
+     currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
+     amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
+   };
+   return utils.encodeData(vcProperty, 'TokenTransferVC')
+     .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
+ }
+ 
+ /**
+  * Create VC
+  * @param  {Object} vcProperty
+  * @param  {String} owner Did
+  * @param  {String[]} issuers Array of Did
+  * @param  {String} vcType TokenVC, MintTokens, SlashTokens, TokenTransferVC
+  * @param  {KeyPair} sigKeypair Owner Key Ring pair
+  * @returns {String} VC Hex String
+  */
+ 
+ async function createVC(vcProperty, owner, issuers, vcType, sigKeypair, api=false) {
+   let encodedVCProperty;
+   VCType = utils.VCType
+   switch (vcType) {
+     case VCType.TokenVC.value:
+       encodedVCProperty = createTokenVC(vcProperty);
+       break;
+     case VCType.MintTokens.value:
+     case VCType.SlashTokens.value:
+       encodedVCProperty = await createMintSlashVC(vcProperty, api);
+       break;
+     case VCType.TokenTransferVC.value:
+       encodedVCProperty = await createTokenTransferVC(vcProperty, api);
+       break;
+     default:
+       throw new Error("Unknown VC Type");
+   }
+   owner = did.sanitiseDid(owner);
+   issuers = issuers.map(issuer => did.sanitiseDid(issuer));
+   const encodedData = utils.encodeData({
+     vc_type: vcType,
+     vc_property: encodedVCProperty,
+     owner,
+     issuers,
+   }, "VC_HEX");
+   const hash = blake2AsHex(encodedData);
+   const sign = utils.bytesToHex(sigKeypair.sign(hash));
+   let vcObject = {
+     hash,
+     owner,
+     issuers,
+     signatures: [sign],
+     is_vc_used: false,
+     vc_type: vcType,
+     vc_property: encodedVCProperty,
+   };
+   return utils.encodeData(vcObject, 'VC');
+ }
+ 
+ /**
  * Sign VC
  * @param  {Object} vcData {vcType, vcProperty, owner, issuers}
  * @param  {KeyPair} sigKeypair Issuer Key Ring pair

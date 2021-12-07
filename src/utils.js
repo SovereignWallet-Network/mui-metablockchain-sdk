@@ -2,8 +2,15 @@ const { u8aToHex, hexToU8a, hexToString: polkadotHextoString, stringToU8a } = re
 const { base58Decode, blake2AsHex } = require('@polkadot/util-crypto');
 
 const types = require('@polkadot/types');
-const Enum = require('enum')
-const VCType = new Enum({'TokenVC': 'TokenVC', 'MintTokens': 'MintTokens', 'SlashTokens': 'SlashTokens', 'TokenTransferVC': 'TokenTransferVC', 'SlashMintTokens': 'SlashMintTokens'});
+
+const VCType = {
+  TokenVC: "TokenVC",
+  MintTokens: "MintTokens",
+  SlashTokens: "SlashTokens",
+  TokenTransferVC: "TokenTransferVC",
+  SlashMintTokens: "SlashMintTokens",
+};
+Object.freeze(VCType);
 
 const METABLOCKCHAIN_TYPES = {
   "PeerId": "(Vec<>)",
@@ -238,17 +245,17 @@ function hex_to_ascii(str1) {
   }
   vcs["issuers"] = issuer_did;
   switch(vcs.vc_type) {
-    case VCType.MintTokens.value:
-      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.SlashMintTokens.value);
+    case VCType.MintTokens:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.SlashMintTokens);
       break;
-    case VCType.TokenVC.value:
+    case VCType.TokenVC:
       vcs["vc_property"] = getVCS(vcs.vc_property, vcs.vc_type);
       break;
-    case VCType.SlashTokens.value:
-      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.SlashMintTokens.value);
+    case VCType.SlashTokens:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.SlashMintTokens);
       break;
-    case VCType.TokenTransferVC.value:
-      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.TokenTransferVC.value);
+    case VCType.TokenTransferVC:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.TokenTransferVC);
       break;
     default:
       throw new Error("Unknown  Type");
@@ -261,6 +268,7 @@ module.exports = {
   TOKEN_NAME_BYTES,
   CURRENCY_CODE_BYTES,
   VC_PROPERTY_BYTES,
+  VCType,
   bytesToHex,
   hexToBytes,
   base58ToBytes,
@@ -271,7 +279,6 @@ module.exports = {
   vcHexToVcId,
   isUpperAndValid,
   getVCS,
-  VCType,
   decodeVC
 
 };

@@ -20,12 +20,12 @@
  */
  const { signatureVerify, blake2AsHex } = require('@polkadot/util-crypto');
  const sha256 = require('js-sha256');
- const { getDIDDetails, getDidKeyHistory, isDidValidator } = require('./did');
+ const { sanitiseDid, getDIDDetails, getDidKeyHistory, isDidValidator } = require('./did');
  const { buildConnection } = require('./connection.js');
  const { doesSchemaExist } = require('./schema.js');
- const { sanitiseDid } = require('./did');
- const did = require('../src/did.js');
- const utils = require('../src/utils');
+ const { VCType } = require('./utils.js');
+ const did = require('./did.js');
+ const utils = require('./utils.js');
  const { getTokenData } = require('./token');
  
  
@@ -115,16 +115,15 @@
  
  async function createVC(vcProperty, owner, issuers, vcType, sigKeypair, api=false) {
    let encodedVCProperty;
-   VCType = utils.VCType
    switch (vcType) {
-     case VCType.TokenVC.value:
+     case VCType.TokenVC:
        encodedVCProperty = createTokenVC(vcProperty);
        break;
-     case VCType.MintTokens.value:
-     case VCType.SlashTokens.value:
+     case VCType.MintTokens:
+     case VCType.SlashTokens:
        encodedVCProperty = await createMintSlashVC(vcProperty, api);
        break;
-     case VCType.TokenTransferVC.value:
+     case VCType.TokenTransferVC:
        encodedVCProperty = await createTokenTransferVC(vcProperty, api);
        break;
      default:

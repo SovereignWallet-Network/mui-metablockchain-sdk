@@ -157,7 +157,7 @@
  * @param  {KeyPair} sigKeypair Issuer Key Ring pair
  * @returns {String} Transaction hash or Error
  */
-function approveVC(vcId, signingKeyPair, api=false) {
+async function approveVC(vcId, signingKeyPair, api=false) {
   return new Promise(async (resolve, reject) => {
     try {
       const provider = api || (await buildConnection('local'));

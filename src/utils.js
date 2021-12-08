@@ -26,6 +26,7 @@ const METABLOCKCHAIN_TYPES = {
   "PublicKey": "[u8;32]",
   "Address": "MultiAddress",
   "LookupSource": "MultiAddress",
+  "Balance": "u128",
   "TreasuryProposal": {
     "proposer": "Did",
     "beneficiary": "Did",
@@ -55,7 +56,7 @@ const METABLOCKCHAIN_TYPES = {
   },
   "TokenVC": {
     "token_name": "[u8;16]",
-    "reservable_balance": "u128",
+    "reservable_balance": "Balance",
     "decimal": "u8",
     "currency_code": "[u8;8]"
   },
@@ -156,7 +157,6 @@ const stringToBytes = (inputString) => stringToU8a(inputString);
  */
 const hexToString = (hexString) => polkadotHextoString(hexString).replace(/^\0+/, '').replace(/\0+$/, '');
 
-// const tokenVC = new Enum({'TokenVC': 1, 'MintTokens': 2, 'SlashTokens': 3, 'TokenTransferVC':4});
 
 /**
  * @param {Hex} hexString

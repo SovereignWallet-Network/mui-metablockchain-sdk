@@ -45,7 +45,7 @@ describe('VC works correctly', () => {
       TEST_SWN_DID,
       EVE_DID,
     ];
-    actualHex = await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+    actualHex = await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     let actualObject = utils.decodeHex(actualHex, 'VC');
     let expectedObject = {
       hash: '0x1bfef48398ef3adcc90370f64c22d520ed45280455f6ef7df369005dd51989c7',
@@ -77,7 +77,7 @@ describe('VC works correctly', () => {
       EVE_DID,
     ];
     try {
-      await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+      await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     } catch (e) {
       assert.strictEqual(e.message, "Token name is required");
     }
@@ -96,7 +96,7 @@ describe('VC works correctly', () => {
       EVE_DID,
     ];
     try {
-      await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+      await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     } catch (e) {
       assert.strictEqual(e.message, "Token name should not exceed 16 chars");
     }
@@ -114,50 +114,52 @@ describe('VC works correctly', () => {
       EVE_DID,
     ];
     try {
-      await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+      await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     } catch (e) {
       assert.strictEqual(e.message, "Only Upper case characters are allowed for currency code");
     }
     tokenVC.currencyCode = 'ABC12';
     try {
-      await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+      await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     } catch (e) {
       assert.strictEqual(e.message, "Only Upper case characters are allowed for currency code");
     }
   });
 
-  it('VC is signed in correct format', async () => {
-    let tokenVC = {
-      tokenName: 'test',
-      reservableBalance: 1000,
-      decimal: 6,
-      currencyCode: 'OTH',
-    };
+  // Note: Since we are not generating the signature independtly any more, no need to test the signature generation sperately
+  // appoveVC is test is enough to test the signature generation 
+  // it('VC is signed in correct format', async () => {
+  //   let tokenVC = {
+  //     tokenName: 'test',
+  //     reservableBalance: 1000,
+  //     decimal: 6,
+  //     currencyCode: 'OTH',
+  //   };
 
-    let owner = TEST_DID;
-    let issuers = [
-      TEST_SWN_DID,
-      EVE_DID,
-    ];
-    const toSign = {
-      vcType: "TokenVC",
-      vcProperty: tokenVC,
-      owner,
-      issuers,
-    }
-    eveSign = vc.signVC(toSign, signKeypairEve);
-    owner = did.sanitiseDid(owner);
-    issuers = issuers.map(issuer => did.sanitiseDid(issuer));
-    const encodedData = utils.encodeData({
-      vc_type: "TokenVC",
-      vc_property: vc.createTokenVC(tokenVC),
-      owner,
-      issuers,
-    }, "VC_HEX");
-    const hash = blake2AsHex(encodedData);
-    let isSignValid = signatureVerify(hash, hexToU8a(eveSign), signKeypairEve.publicKey).isValid;
-    assert.strictEqual(isSignValid, true);
-  });
+  //   let owner = TEST_DID;
+  //   let issuers = [
+  //     TEST_SWN_DID,
+  //     EVE_DID,
+  //   ];
+  //   const toSign = {
+  //     vcType: "TokenVC",
+  //     vcProperty: tokenVC,
+  //     owner,
+  //     issuers,
+  //   }
+  //   eveSign = vc.approveVC(toSign, signKeypairEve);
+  //   owner = did.sanitiseDid(owner);
+  //   issuers = issuers.map(issuer => did.sanitiseDid(issuer));
+  //   const encodedData = utils.encodeData({
+  //     vc_type: "TokenVC",
+  //     vc_property: vc.createTokenVC(tokenVC),
+  //     owner,
+  //     issuers,
+  //   }, "VC_HEX");
+  //   const hash = blake2AsHex(encodedData);
+  //   let isSignValid = signatureVerify(hash, hexToU8a(eveSign), signKeypairEve.publicKey).isValid;
+  //   assert.strictEqual(isSignValid, true);
+  // });
 
   if (constants.providerNetwork == 'local') {
     let vcId = null;
@@ -204,18 +206,19 @@ describe('VC works correctly', () => {
       assert.notStrictEqual(vcHistory, null);
     });
 
-    it('Sign VC works correctly', async () => {
-      const didObj = {
-        public_key: signKeypairEve.publicKey, // this is the public key linked to the did
-        identity: EVE_DID, // this is the actual did
-        metadata: 'Metadata',
-      };
-      try {
-        await did.storeDIDOnChain(didObj, sigKeypair, provider);
-      } catch(err) {}
-      const transaction = await vc.addSignature(vcId, eveSign, signKeypairEve, provider);
-      assert.doesNotReject(transaction);
-    });
+    // This test case is not needed any more
+    // it('Sign VC works correctly', async () => {
+    //   const didObj = {
+    //     public_key: signKeypairEve.publicKey, // this is the public key linked to the did
+    //     identity: EVE_DID, // this is the actual did
+    //     metadata: 'Metadata',
+    //   };
+    //   try {
+    //     await did.storeDIDOnChain(didObj, sigKeypair, provider);
+    //   } catch(err) {}
+    //   const transaction = await vc.addSignature(vcId, eveSign, signKeypairEve, provider);
+    //   assert.doesNotReject(transaction);
+    // });
 
     it('Get VCs works correctly after signing', async () => {
       const vcs = await vc.getVCs(vcId, provider);
@@ -261,18 +264,17 @@ describe('VC works correctly', () => {
         owner,
         issuers,
       }
-      actualHex = await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypair);
-      let eveSign = vc.signVC(toSign, signKeypairEve);
-      let daveSign = vc.signVC(toSign, signKeypairDave);
+      actualHex = await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypair);
+      
       await sudoStoreVC(actualHex, sigKeypair, provider);
       const vcsByDid = await vc.getVCIdsByDID(TEST_DID, provider);
       vcId = vcsByDid[2] || vcsByDid[1] || vcsByDid[0];
       let vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Inactive');
-      await vc.addSignature(vcId, eveSign, signKeypairEve, provider);
+      vc.approveVC(vcId, signKeypairEve, provider);
       vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Inactive');
-      await vc.addSignature(vcId, daveSign, signKeypairDave, provider);
+      vc.approveVC(vcId, signKeypairDave, provider);
       vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Active');
     });

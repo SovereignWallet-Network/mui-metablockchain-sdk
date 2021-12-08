@@ -61,7 +61,7 @@
      decimal: utils.encodeData(decimal, 'decimal'),
      currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'currency_code'),
    };
-   return utils.encodeData(vcProperty, 'TokenVC')
+   return utils.encodeData(vcProperty, VCType.TokenVC)
      .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
  }
  
@@ -80,7 +80,7 @@
      currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
      amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
    };
-   return utils.encodeData(vcProperty, 'SlashMintTokens')
+   return utils.encodeData(vcProperty, VCType.SlashMintTokens)
      .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
  }
  
@@ -99,7 +99,7 @@
      currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
      amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
    };
-   return utils.encodeData(vcProperty, 'TokenTransferVC')
+   return utils.encodeData(vcProperty, VCType.TokenTransferVC)
      .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
  }
  
@@ -113,7 +113,7 @@
   * @returns {String} VC Hex String
   */
  
- async function createVC(vcProperty, owner, issuers, vcType, sigKeypair, api=false) {
+ async function generateVC(vcProperty, owner, issuers, vcType, sigKeypair, api=false) {
    let encodedVCProperty;
    switch (vcType) {
      case VCType.TokenVC:
@@ -157,18 +157,56 @@
  * @param  {KeyPair} sigKeypair Issuer Key Ring pair
  * @returns {String} Signature
  */
-function signVC({vcType, vcProperty, owner, issuers}, signingKeyPair) {
-  owner = did.sanitiseDid(owner);
-  issuers = issuers.map(issuer => did.sanitiseDid(issuer));
-  const encodedData = utils.encodeData({
-    vc_type: vcType,
-    vc_property: createTokenVC(vcProperty),
-    owner,
-    issuers,
-  }, "VC_HEX");
-  const hash = blake2AsHex(encodedData);
-  const sign = utils.bytesToHex(signingKeyPair.sign(hash));
-  return sign;
+function approveVC(vcId, signingKeyPair, api=false) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+
+      // fetching VC from chain
+      let vc_details = await getVCs(vcId, provider);
+      if (!vc_details) {
+        reject(new Error('VC not found'));
+      }
+      const vc = vc_details[0];
+
+      // generating signature
+      const encodedData = utils.encodeData({
+        vc_type: vc['vc_type'],
+        vc_property: vc['vc_property'],
+        owner: vc['owner'],
+        issuers: vc['issuers']
+      }, "VC_HEX");
+      const hash = blake2AsHex(encodedData);
+      const sign = utils.bytesToHex(signingKeyPair.sign(hash));
+
+      // adding signature to the chain
+      const tx = provider.tx.vc.addSignature(vcId, sign);
+
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeyPair.address);
+      let signedTx = tx.sign(signingKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(new Error(`${section}.${name}`));
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            // console.log(dispatchError.toString());
+            reject(new Error(dispatchError.toString()));
+          }
+        } else if (status.isFinalized) {
+          // console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
+        }
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
 }
 
 /**
@@ -406,14 +444,13 @@ async function getVCHistoryByVCId(vcId, api = false) {
   return data;
 }
 
+// TODO: Import & re export the functions from verified_credentials.js in next PR
 module.exports = {
   createTokenVC,
-  createVC,
-  signVC,
-  // verifyVC,
+  generateVC,
+  approveVC,
   doesSchemaExist,
   storeVC,
-  addSignature,
   updateStatus,
   getVCs,
   getVCIdsByDID,

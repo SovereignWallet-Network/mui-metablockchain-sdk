@@ -152,10 +152,10 @@
  }
  
  /**
- * Sign VC
- * @param  {Object} vcData {vcType, vcProperty, owner, issuers}
+ * Approve VC
+ * @param  {Object} vcID vc_id of VC to be approved
  * @param  {KeyPair} sigKeypair Issuer Key Ring pair
- * @returns {String} Signature
+ * @returns {String} Transaction hash or Error
  */
 function approveVC(vcId, signingKeyPair, api=false) {
   return new Promise(async (resolve, reject) => {
@@ -169,7 +169,7 @@ function approveVC(vcId, signingKeyPair, api=false) {
       }
       const vc = vc_details[0];
 
-      // generating signature
+      // generating the signature
       const encodedData = utils.encodeData({
         vc_type: vc['vc_type'],
         vc_property: vc['vc_property'],
@@ -209,49 +209,6 @@ function approveVC(vcId, signingKeyPair, api=false) {
   });
 }
 
-/**
- * Verify if the signature/verifier DID is valid and matches the given data in vc_json
- * @param {JSON} vcJson
- * @returns {Boolean} true if valid VC
- */
-async function verifyVC(vcJson, api = false) {
-  const provider = api || (await buildConnection('local'));
-
-  // check if the vc has signature and verifier
-  if (!vcJson.verifier || !vcJson.signature) {
-    throw new Error('VC Not signed!');
-  }
-
-  // check if the hash and the properties are a match
-  const expectedHash = utils.bytesToHex(sha256(utils.stringToBytes(JSON.stringify(vcJson.properties))));
-  if (expectedHash !== vcJson.hash) {
-    throw new Error('Data Mismatch!');
-  }
-
-  // check if the signer is a validator
-  const isSignerValidator = await isDidValidator(vcJson.verifier, provider);
-  if (!isSignerValidator) throw new Error('Signer is not a validator!');
-
-  // fetch the details of the DID
-  const didDetails = await getDIDDetails(vcJson.verifier, provider);
-  let signerAddress = didDetails.public_key;
-
-  // if the pubkey has been rotated, check for older versions
-  // naive implementation need to reafactor later handling edge cases
-  if (didDetails.added_block > parseInt(vcJson.properties.issued_block, 10)) {
-    console.log('Signing key has been rotated, searching for previous key history!');
-    const prevKeyDetails = await getDidKeyHistory(vcJson.verifier);
-    prevKeyDetails.forEach(([accountId, blockNo]) => {
-      if (parseInt(vcJson.properties.issued_block, 10) > blockNo) {
-        console.log('Signing key found!');
-        signerAddress = accountId;
-      }
-    });
-  }
-
-  return signatureVerify(utils.hexToBytes(vcJson.hash), utils.hexToBytes(vcJson.signature), signerAddress.toString()).isValid;
-}
-
 
 /**
  * Store vc hex
@@ -270,54 +227,6 @@ async function storeVC(
       const provider = api || (await buildConnection('local'));
 
       const tx = provider.tx.vc.store(vcHex);
-
-      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
-      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
-      await signedTx.send(function ({ status, dispatchError }) {
-        console.log('Transaction status:', status.type);
-        if (dispatchError) {
-          if (dispatchError.isModule) {
-            // for module errors, we have the section indexed, lookup
-            const decoded = api.registry.findMetaError(dispatchError.asModule);
-            const { documentation, name, section } = decoded;
-            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
-            reject(new Error(`${section}.${name}`));
-          } else {
-            // Other, CannotLookup, BadOrigin, no extra info
-            // console.log(dispatchError.toString());
-            reject(new Error(dispatchError.toString()));
-          }
-        } else if (status.isFinalized) {
-          // console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(signedTx.hash.toHex())
-        }
-      });
-    } catch (err) {
-      // console.log(err);
-      reject(err);
-    }
-  });
-}
-
-/**
- * Store vc hex
- * @param {String} vcId
- * @param {String} sign
- * @param {KeyPair} senderAccountKeyPair
- * @param {APIPromise} api
- * @returns {hexString}
- */
-async function addSignature(
-  vcId,
-  sign,
-  senderAccountKeyPair,
-  api = false,
-) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const provider = api || (await buildConnection('local'));
-
-      const tx = provider.tx.vc.addSignature(vcId, sign);
 
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});

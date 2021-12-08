@@ -353,6 +353,18 @@ async function getVCHistoryByVCId(vcId, api = false) {
   return data;
 }
 
+/**
+ * Get approved issuers of the VC
+ * @param {String} vcId (hex/base64 version works)
+ * @param {ApiPromise} api
+ * @returns {[Did]} approved issuer list
+ */
+async function getVCApprovers(vcId, api = false) {
+  const provider = api || (await buildConnection('local'));
+  const approver_list = (await provider.query.vc.vCApproverList(vcId)).toHuman();
+  return approver_list;
+}
+
 // TODO: Import & re export the functions from verified_credentials.js in next PR
 module.exports = {
   createTokenVC,
@@ -365,4 +377,5 @@ module.exports = {
   getVCIdsByDID,
   getDIDByVCId,
   getVCHistoryByVCId,
+  getVCApprovers,
 };

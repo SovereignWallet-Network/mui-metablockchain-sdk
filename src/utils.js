@@ -116,6 +116,12 @@ const METABLOCKCHAIN_TYPES = {
       "V2_0_0",
       "V3_0_0"
     ]
+  },
+  "VCPalletVersion": {
+    "_enum": [
+      "V1_0_0",
+      "V2_0_0"
+    ]
   }
 }
 

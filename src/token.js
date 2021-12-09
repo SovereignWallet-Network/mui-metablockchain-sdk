@@ -320,6 +320,9 @@ async function getTokenList(api = false) {
  async function getTokenData(currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
   const data = await provider.query.tokens.tokenData(sanitiseCCode(currencyCode));
+  if(!data) {
+    throw new Error("Token Data does not exist");
+  }
   return data.toHuman();
 }
 

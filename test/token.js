@@ -68,7 +68,7 @@ describe('Token Module works correctly', () => {
           TEST_META_DID,
         ];
         try {
-          const vcHex = await vc.createVC(tokenVC, owner, issuers, "TokenVC", sigKeypairMeta);
+          const vcHex = await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairMeta);
           await sudoStoreVC(vcHex, sigKeypairRoot, provider);
         } catch (err) {
           console.log(err);
@@ -184,6 +184,16 @@ describe('Token Module works correctly', () => {
     it('Get Token Balance after transfer all works correctly', async () => {
       let balance = await token.getTokenBalance(TEST_SWN_DID, currencyCode, provider);
       assert.strictEqual(balance, 10);
+    });
+
+    it('Token set balance works correctly', async () => {
+      const transaction = await token.setBalance(TEST_SWN_DID, currencyCode, 0.01, signKeypairOrgA, provider);
+      assert.doesNotReject(transaction);
+    });
+
+    it('Get Token Balance after transfer works correctly', async () => {
+      let balance = await token.getTokenBalance(TEST_SWN_DID, currencyCode, provider);
+      assert.strictEqual(balance, 0.01);
     });
 
     it('Tokens total supply is unchanged', async () => {

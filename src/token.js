@@ -320,6 +320,9 @@ async function getTokenList(api = false) {
  async function getTokenData(currencyCode, api = false) {
   const provider = api || (await buildConnection('local'));
   const data = await provider.query.tokens.tokenData(sanitiseCCode(currencyCode));
+  if(!data) {
+    throw new Error("Token Data does not exist");
+  }
   return data.toHuman();
 }
 
@@ -473,6 +476,63 @@ async function withdrawTreasuryReserve(
 }
 
 /**
+ * Set balance of did with given token_id
+ * Can be called only token owner
+ * @param {String} dest
+ * @param {String} currencyCode
+ * @param {String} amount In Highest Form
+ * @param {KeyPair} senderAccountKeyPair
+ * @param {APIPromise} api
+ * @returns {hexString}
+ */
+ async function setBalance(
+  dest,
+  currencyCode,
+  amount,
+  senderAccountKeyPair,
+  api = false,
+  nonce
+) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      const ccode = sanitiseCCode(currencyCode);
+      const tokenData = await getTokenData(ccode, provider);
+      amount = amount * (Math.pow(10,tokenData.decimal));
+      if (amount < 1) {
+        throw new Error(`Invalid token amount, max supported decimal for this token is ${tokenData.decimal}`);
+      }
+      const tx = provider.tx.tokens.setBalance(
+        sanitiseDid(dest),
+        ccode,
+        amount,
+      );
+      nonce = nonce || await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            reject(new Error(`${section}.${name}`));
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            reject(new Error(dispatchError.toString()));
+          }
+        } else if (status.isFinalized) {
+          resolve(signedTx.hash.toHex())
+        }
+      });
+    } catch (err) {
+      // console.log(err);
+      reject(err);
+    }
+  });
+}
+
+/**
  * Checks if the given currency_code is in hex format or not & converts it into valid hex format.
  * 
  *  Note: This util function is needed since dependant module wont convert the utf did to hex anymore
@@ -507,5 +567,6 @@ module.exports = {
   getTokenTotalSupply,
   withdrawTreasuryReserve,
   transferTokenWithVC,
+  setBalance,
   sanitiseCCode,
 };

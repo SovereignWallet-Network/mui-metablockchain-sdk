@@ -3,3 +3,4 @@ dist
 /wallet
 .vscode
 test_manual.js
+docs

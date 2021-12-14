@@ -27,7 +27,11 @@
  const did = require('./did.js');
  const utils = require('./utils.js');
  const { getTokenData } = require('./token');
- 
+ const {
+  createVC,
+  signVC,
+  verifyVC,
+} = require('./verified_credentials');
  
  /** Encodes Token VC and pads with appropriate bytes
   * @param  {Object} TokenVC
@@ -357,7 +361,7 @@ async function getVCHistoryByVCId(vcId, api = false) {
  * Get approved issuers of the VC
  * @param {String} vcId (hex/base64 version works)
  * @param {ApiPromise} api
- * @returns {[Did]} approved issuer list
+ * @returns {Array<Did>} approved issuer list
  */
 async function getVCApprovers(vcId, api = false) {
   const provider = api || (await buildConnection('local'));
@@ -365,7 +369,6 @@ async function getVCApprovers(vcId, api = false) {
   return approver_list;
 }
 
-// TODO: Import & re export the functions from verified_credentials.js in next PR
 module.exports = {
   createTokenVC,
   generateVC,
@@ -378,4 +381,7 @@ module.exports = {
   getDIDByVCId,
   getVCHistoryByVCId,
   getVCApprovers,
+  createVC,
+  signVC,
+  verifyVC,
 };

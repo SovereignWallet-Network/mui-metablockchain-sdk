@@ -210,19 +210,6 @@ function tidy(s) {
   return tidy;
 }
 
-/** Decodes hex of given type to it's corresponding object/value
- * @param  {String} str1 Hex String to be decoded
- * @returns {Object | String} Decoded Object/String
- */
-function hex_to_ascii(str1) {
-  var hex  = str1.toString();
-  var str = '';
-  for (var n = 0; n < hex.length; n += 2) {
-    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
-  }
-	return tidy(str);
- }
-
  /** function that decodes hex of createTokenVC
  * @param  {String} hexValue Hex String to be decoded
  * @param  {String} typeKey Key from METABLOCKCHAIN_TYPES which represents type of data
@@ -286,5 +273,4 @@ module.exports = {
   isUpperAndValid,
   getVCS,
   decodeVC
-
 };

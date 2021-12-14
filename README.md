@@ -60,6 +60,8 @@ npm test
 - <a href="#txnUtils">Transactions</a>
 - <a href="#vcUtils">VC</a>
 - <a href="#utils">Utils</a>
+- <a href="#schema">Schema</a>
+- <a href="#ssidVC">SSID VC</a>
 
 
 <a name="connectionUtils"></a>
@@ -524,7 +526,6 @@ Fetch the history of rotated keys for the specified DID
 
 
 
-
 <a name="tokenUtils"></a>
 
 ## Token Utilities
@@ -533,7 +534,8 @@ Fetch the history of rotated keys for the specified DID
 
 <dl>
 <dt><a href="#issueToken">issueToken(vcId, totalIssuanceAmt, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
-<dd><p>Issue new token from given vc Id. Amount is in lowest form here but everywhere else it's in highest form</p>
+<dd><p>Issue new token from given vc Id. Amount is in lowest form here 
+but everywhere else it&#39;s in highest form</p>
 </dd>
 <dt><a href="#transferToken">transferToken(recipentDid, currencyCode, tokenAmount, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
 <dd><p>Transfer token with given token_id to the recipent_did</p>
@@ -553,11 +555,11 @@ Fetch the history of rotated keys for the specified DID
 <dt><a href="#getDetailedTokenBalance">getDetailedTokenBalance(did, currencyCode, api)</a> ⇒ <code>Object</code></dt>
 <dd><p>Get the detailed token balance for a given token for given did</p>
 </dd>
-<dt><a href="#getTokenNameFromCurrencyId">getTokenNameFromCurrencyId(currencyCode, api)</a> ⇒ <code>tokenIdentifier</code></dt>
-<dd><p>Get the human friendly name of token from token id</p>
-</dd>
 <dt><a href="#getTokenList">getTokenList(api)</a> ⇒ <code>Array</code></dt>
 <dd><p>Get the list of all active tokens in metablockchain network</p>
+</dd>
+<dt><a href="#getTokenData">getTokenData(currencyCode, api)</a> ⇒ <code>Object</code></dt>
+<dd><p>Get the token by currency id in metablockchain network</p>
 </dd>
 <dt><a href="#getTokenTotalSupply">getTokenTotalSupply(currencyCode, api)</a> ⇒ <code>String</code></dt>
 <dd><p>Get the total issuance amount for given currency id</p>
@@ -566,7 +568,7 @@ Fetch the history of rotated keys for the specified DID
 <dd><p>Get the lock for given currency id</p>
 </dd>
 <dt><a href="#getTokenIssuer">getTokenIssuer(currencyCode, api)</a> ⇒ <code>String</code></dt>
-<dd><p>Get the total issuance amount for given currency id</p>
+<dd><p>Get the issuer for given token code</p>
 </dd>
 <dt><a href="#withdrawTreasuryReserve">withdrawTreasuryReserve(destination, from, amount, senderAccountKeyPair, api)</a> ⇒ <code>String</code></dt>
 <dd><p>Function to withdraw the treasury reserve amount locked at the time of
@@ -575,21 +577,30 @@ token creation. Only a validator can call this operation succesfully.</p>
 <dt><a href="#transferTokenWithVC">transferTokenWithVC(vcId, receiverDID, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
 <dd><p>Transfer token of given currency to given Did from Currency owner account</p>
 </dd>
+<dt><a href="#setBalance">setBalance(dest, currencyCode, amount, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
+<dd><p>Set balance of did with given token_id
+Can be called only token owner</p>
+</dd>
+<dt><a href="#sanitiseCCode">sanitiseCCode(currency_code)</a> ⇒ <code>String</code></dt>
+<dd><p>Checks if the given currency_code is in hex format or not &amp; converts it into valid hex format.</p>
+<p> Note: This util function is needed since dependant module wont convert the utf did to hex anymore</p>
+</dd>
 </dl>
 
 <a name="issueToken"></a>
 
 ## issueToken(vcId, totalIssuanceAmt, senderAccountKeyPair, api) ⇒ <code>hexString</code>
-Issue new token from given vc Id.  Amount is in lowest form here but everywhere else it's in highest form
+Issue new token from given vc Id. Amount is in lowest form here 
+but everywhere else it's in highest form
 
 **Kind**: global function  
 
-| Param | Type | Default |
-| --- | --- | --- |
-| vcId | <code>String</code> |  | 
-| totalIssuanceAmt | <code>String</code> | In Lowest Form  | 
-| senderAccountKeyPair | <code>KeyPair</code> |  | 
-| api | <code>APIPromise</code> | <code>false</code> | 
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| vcId | <code>String</code> |  |  |
+| totalIssuanceAmt | <code>String</code> |  | Amount is in lowest form |
+| senderAccountKeyPair | <code>KeyPair</code> |  |  |
+| api | <code>APIPromise</code> | <code>false</code> |  |
 
 <a name="transferToken"></a>
 
@@ -598,13 +609,13 @@ Transfer token with given token_id to the recipent_did
 
 **Kind**: global function  
 
-| Param | Type | Default |
-| --- | --- | --- |
-| recipentDid | <code>String</code> |  | 
-| currencyCode | <code>String</code> |  | 
-| tokenAmount | <code>String</code> | In Highest Form | 
-| senderAccountKeyPair | <code>KeyPair</code> |  | 
-| api | <code>APIPromise</code> | <code>false</code> | 
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| recipentDid | <code>String</code> |  |  |
+| currencyCode | <code>String</code> |  |  |
+| tokenAmount | <code>String</code> |  | In Highest Form |
+| senderAccountKeyPair | <code>KeyPair</code> |  |  |
+| api | <code>APIPromise</code> | <code>false</code> |  |
 
 <a name="transferAll"></a>
 
@@ -674,19 +685,6 @@ Get the detailed token balance for a given token for given did
 | currencyCode | <code>String</code> |  | 
 | api | <code>ApiPromise</code> | <code>false</code> | 
 
-<a name="getTokenNameFromCurrencyId"></a>
-
-## getTokenNameFromCurrencyId(currencyCode, api) ⇒ <code>tokenIdentifier</code>
-Get the human friendly name of token from token id
-
-**Kind**: global function  
-**Returns**: <code>tokenIdentifier</code> - {token_name: String, currency_code: String, decimal: String}  
-
-| Param | Type | Default |
-| --- | --- | --- |
-| currencyCode | <code>String</code> |  | 
-| api | <code>ApiPromise</code> | <code>false</code> | 
-
 <a name="getTokenList"></a>
 
 ## getTokenList(api) ⇒ <code>Array</code>
@@ -697,6 +695,18 @@ Get the list of all active tokens in metablockchain network
 
 | Param | Type | Default |
 | --- | --- | --- |
+| api | <code>ApiPromise</code> | <code>false</code> | 
+
+<a name="getTokenData"></a>
+
+## getTokenData(currencyCode, api) ⇒ <code>Object</code>
+Get the token by currency id in metablockchain network
+
+**Kind**: global function  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| currencyCode | <code>String</code> |  | 
 | api | <code>ApiPromise</code> | <code>false</code> | 
 
 <a name="getTokenTotalSupply"></a>
@@ -727,7 +737,7 @@ Get the lock for given currency id
 <a name="getTokenIssuer"></a>
 
 ## getTokenIssuer(currencyCode, api) ⇒ <code>String</code>
-Get the total issuance amount for given currency id
+Get the issuer for given token code
 
 **Kind**: global function  
 
@@ -766,6 +776,37 @@ Transfer token of given currency to given Did from Currency owner account
 | receiverDID | <code>String</code> |  | 
 | senderAccountKeyPair | <code>KeyPair</code> |  | 
 | api | <code>APIPromise</code> | <code>false</code> | 
+
+<a name="setBalance"></a>
+
+## setBalance(dest, currencyCode, amount, senderAccountKeyPair, api) ⇒ <code>hexString</code>
+Set balance of did with given token_id
+Can be called only token owner
+
+**Kind**: global function  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| dest | <code>String</code> |  |  |
+| currencyCode | <code>String</code> |  |  |
+| amount | <code>String</code> |  | In Highest Form |
+| senderAccountKeyPair | <code>KeyPair</code> |  |  |
+| api | <code>APIPromise</code> | <code>false</code> |  |
+
+<a name="sanitiseCCode"></a>
+
+## sanitiseCCode(currency_code) ⇒ <code>String</code>
+Checks if the given currency_code is in hex format or not & converts it into valid hex format.
+
+ Note: This util function is needed since dependant module wont convert the utf did to hex anymore
+
+**Kind**: global function  
+**Returns**: <code>String</code> - Hex currency_code  
+
+| Param | Type |
+| --- | --- |
+| currency_code | <code>String</code> | 
+
 
 
 
@@ -840,19 +881,13 @@ This function is similar to sendTransaction except that it provides the user to 
 <dt><a href="#createTokenTransferVC">createTokenTransferVC(vcProperty)</a> ⇒ <code>String</code></dt>
 <dd><p>Encodes Token VC and pads with appropriate bytes</p>
 </dd>
-<dt><a href="#createVC">createVC(vcProperty, owner, issuers, vcType, sigKeypair)</a> ⇒ <code>String</code></dt>
+<dt><a href="#generateVC">generateVC(vcProperty, owner, issuers, vcType, sigKeypair)</a> ⇒ <code>String</code></dt>
 <dd><p>Create VC</p>
 </dd>
-<dt><a href="#signVC">signVC(tokenData, sigKeypair)</a> ⇒ <code>String</code></dt>
-<dd><p>Sign VC</p>
-</dd>
-<dt><a href="#verifyVC">verifyVC(vcJson)</a> ⇒ <code>Boolean</code></dt>
-<dd><p>Verify if the signature/verifier DID is valid and matches the given data in vc_json</p>
+<dt><a href="#approveVC">approveVC(vcID, sigKeypair)</a> ⇒ <code>String</code></dt>
+<dd><p>Approve VC</p>
 </dd>
 <dt><a href="#storeVC">storeVC(vcHex, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
-<dd><p>Store vc hex</p>
-</dd>
-<dt><a href="#addSignature">addSignature(vcId, sign, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
 <dd><p>Store vc hex</p>
 </dd>
 <dt><a href="#updateStatus">updateStatus(vcId, vcStatus, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
@@ -869,6 +904,19 @@ This function is similar to sendTransaction except that it provides the user to 
 </dd>
 <dt><a href="#getVCHistoryByVCId">getVCHistoryByVCId(vcId, api)</a> ⇒ <code>String</code></dt>
 <dd><p>Get DID by VC Id</p>
+</dd>
+<dt><a href="#getVCApprovers">getVCApprovers(vcId, api)</a> ⇒ <code>Array.&lt;Did&gt;</code></dt>
+<dd><p>Get approved issuers of the VC</p>
+</dd>
+<dt><a href="#createVC">createVC(properties_json, schema_hash)</a> ⇒ <code>JSON</code></dt>
+<dd><p>The function returns the VC in the expected format, the verifier and
+signature fields are left blank to be filled by signing function</p>
+</dd>
+<dt><a href="#signVC">signVC(vcJson, verifierDid, signingKeyPair)</a> ⇒ <code>JSON</code></dt>
+<dd><p>Sign a VC using the given verifier_pvkey</p>
+</dd>
+<dt><a href="#verifyVC">verifyVC(vcJson)</a> ⇒ <code>Boolean</code></dt>
+<dd><p>Verify if the signature/verifier DID is valid and matches the given data in vc_json</p>
 </dd>
 </dl>
 
@@ -918,9 +966,9 @@ Encodes Token VC and pads with appropriate bytes
 | vcProperty.currencyCode | <code>String</code> |  |
 | vcProperty.amount | <code>String</code> | In Highest Form |
 
-<a name="createVC"></a>
+<a name="generateVC"></a>
 
-## createVC(vcProperty, owner, issuers, vcType, sigKeypair) ⇒ <code>String</code>
+## generateVC(vcProperty, owner, issuers, vcType, sigKeypair) ⇒ <code>String</code>
 Create VC
 
 **Kind**: global function  
@@ -934,30 +982,18 @@ Create VC
 | vcType | <code>String</code> | TokenVC, MintTokens, SlashTokens, TokenTransferVC |
 | sigKeypair | <code>KeyPair</code> | Owner Key Ring pair |
 
-<a name="signVC"></a>
+<a name="approveVC"></a>
 
-## signVC(tokenVC, sigKeypair) ⇒ <code>String</code>
-Sign VC
+## approveVC(vcID, sigKeypair) ⇒ <code>String</code>
+Approve VC
 
 **Kind**: global function  
-**Returns**: <code>String</code> - Signature  
+**Returns**: <code>String</code> - Transaction hash or Error  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| tokenVC | <code> vcData</code> | {vcType, vcProperty, owner, issuers} |
+| vcID | <code>Object</code> | vc_id of VC to be approved |
 | sigKeypair | <code>KeyPair</code> | Issuer Key Ring pair |
-
-<a name="verifyVC"></a>
-
-## verifyVC(vcJson) ⇒ <code>Boolean</code>
-Verify if the signature/verifier DID is valid and matches the given data in vc_json
-
-**Kind**: global function  
-**Returns**: <code>Boolean</code> - true if valid VC  
-
-| Param | Type |
-| --- | --- |
-| vcJson | <code>JSON</code> | 
 
 <a name="storeVC"></a>
 
@@ -969,20 +1005,6 @@ Store vc hex
 | Param | Type | Default |
 | --- | --- | --- |
 | vcHex | <code>String</code> |  | 
-| senderAccountKeyPair | <code>KeyPair</code> |  | 
-| api | <code>APIPromise</code> | <code>false</code> | 
-
-<a name="addSignature"></a>
-
-## addSignature(vcId, sign, senderAccountKeyPair, api) ⇒ <code>hexString</code>
-Store vc hex
-
-**Kind**: global function  
-
-| Param | Type | Default |
-| --- | --- | --- |
-| vcId | <code>String</code> |  | 
-| sign | <code>String</code> |  | 
 | senderAccountKeyPair | <code>KeyPair</code> |  | 
 | api | <code>APIPromise</code> | <code>false</code> | 
 
@@ -1052,6 +1074,56 @@ Get DID by VC Id
 | vcId | <code>String</code> |  | (hex/base64 version works) |
 | api | <code>ApiPromise</code> | <code>false</code> |  |
 
+<a name="getVCApprovers"></a>
+
+## getVCApprovers(vcId, api) ⇒ <code>Array.&lt;Did&gt;</code>
+Get approved issuers of the VC
+
+**Kind**: global function  
+**Returns**: <code>Array.&lt;Did&gt;</code> - approved issuer list  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| vcId | <code>String</code> |  | (hex/base64 version works) |
+| api | <code>ApiPromise</code> | <code>false</code> |  |
+
+<a name="createVC"></a>
+
+## createVC(properties_json, schema_hash) ⇒ <code>JSON</code>
+The function returns the VC in the expected format, the verifier and
+signature fields are left blank to be filled by signing function
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| properties_json | <code>JSON</code> | 
+| schema_hash | <code>Hex</code> | 
+
+<a name="signVC"></a>
+
+## signVC(vcJson, verifierDid, signingKeyPair) ⇒ <code>JSON</code>
+Sign a VC using the given verifier_pvkey
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| vcJson | <code>JSON</code> | 
+| verifierDid | <code>String</code> | 
+| signingKeyPair | <code>KeyPair</code> | 
+
+<a name="verifyVC"></a>
+
+## verifyVC(vcJson) ⇒ <code>Boolean</code>
+Verify if the signature/verifier DID is valid and matches the given data in vc_json
+
+**Kind**: global function  
+**Returns**: <code>Boolean</code> - true if valid VC  
+
+| Param | Type |
+| --- | --- |
+| vcJson | <code>JSON</code> | 
 
 
 <a name="utils"></a>
@@ -1071,11 +1143,25 @@ Get DID by VC Id
 <dd></dd>
 <dt><a href="#hexToString">hexToString(hexString)</a></dt>
 <dd></dd>
+<dt><a href="#vcHexToVcId">vcHexToVcId(hexString)</a></dt>
+<dd></dd>
 <dt><a href="#encodeData">encodeData(data, typeKey)</a> ⇒ <code>String</code></dt>
 <dd><p>Encodes object/ string of given type to hex</p>
 </dd>
 <dt><a href="#decodeHex">decodeHex(hexValue, typeKey)</a> ⇒ <code>Object</code> | <code>String</code></dt>
 <dd><p>Decodes hex of given type to it&#39;s corresponding object/value</p>
+</dd>
+<dt><a href="#isUpperAndValid">isUpperAndValid(str)</a> ⇒</dt>
+<dd><p>Checks if str is upper and only contains characters</p>
+</dd>
+<dt><a href="#tidy">tidy(s)</a> ⇒ <code>Object</code> | <code>String</code></dt>
+<dd><p>regex to remove unwanted hex bytes</p>
+</dd>
+<dt><a href="#getVCS">getVCS(hexValue, typeKey)</a> ⇒ <code>Object</code> | <code>String</code></dt>
+<dd><p>function that decodes hex of createTokenVC</p>
+</dd>
+<dt><a href="#decodeVC">decodeVC(hexValue, typeKey)</a> ⇒ <code>Object</code> | <code>String</code></dt>
+<dd><p>function that decodes hex of createVC where type is TokenVC to it&#39;s corresponding object/value</p>
 </dd>
 </dl>
 
@@ -1124,6 +1210,15 @@ Get DID by VC Id
 | --- | --- |
 | hexString | <code>Hex</code> | 
 
+<a name="vcHexToVcId"></a>
+
+## vcHexToVcId(hexString)
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| hexString | <code>Hex</code> | 
+
 <a name="encodeData"></a>
 
 ## encodeData(data, typeKey) ⇒ <code>String</code>
@@ -1150,3 +1245,165 @@ Decodes hex of given type to it's corresponding object/value
 | hexValue | <code>String</code> | Hex String to be decoded |
 | typeKey | <code>String</code> | Key from METABLOCKCHAIN_TYPES which represents type of data |
 
+<a name="isUpperAndValid"></a>
+
+## isUpperAndValid(str) ⇒
+Checks if str is upper and only contains characters
+
+**Kind**: global function  
+**Returns**: bool  
+
+| Param |
+| --- |
+| str | 
+
+<a name="tidy"></a>
+
+## tidy(s) ⇒ <code>Object</code> \| <code>String</code>
+regex to remove unwanted hex bytes
+
+**Kind**: global function  
+**Returns**: <code>Object</code> \| <code>String</code> - Decoded tidy Object/String  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| s | <code>String</code> | Hex String to make tidy |
+
+<a name="getVCS"></a>
+
+## getVCS(hexValue, typeKey) ⇒ <code>Object</code> \| <code>String</code>
+function that decodes hex of createTokenVC
+
+**Kind**: global function  
+**Returns**: <code>Object</code> \| <code>String</code> - Decoded Object/String  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| hexValue | <code>String</code> | Hex String to be decoded |
+| typeKey | <code>String</code> | Key from METABLOCKCHAIN_TYPES which represents type of data |
+
+<a name="decodeVC"></a>
+
+## decodeVC(hexValue, typeKey) ⇒ <code>Object</code> \| <code>String</code>
+function that decodes hex of createVC where type is TokenVC to it's corresponding object/value
+
+**Kind**: global function  
+**Returns**: <code>Object</code> \| <code>String</code> - Decoded Object/String  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| hexValue | <code>String</code> | Hex String to be decoded |
+| typeKey | <code>String</code> | Key from METABLOCKCHAIN_TYPES which represents type of data |
+
+
+<a name="schema"></a>
+
+## Schema
+### Functions
+
+<dl>
+<dt><a href="#createNewSchema">createNewSchema(schema_properties)</a> ⇒ <code>JSON</code></dt>
+<dd><p>Create a new schema with the properties provided in the schema_properties json
+The stringified schema and its hash will be returned as required by the extrinsic.</p>
+</dd>
+<dt><a href="#storeSchemaOnChain">storeSchemaOnChain(schema, signingKeypair)</a></dt>
+<dd><p>Write a new schema to the chain using the account provided
+This extrinsic can only be called by the accounts in the validator_set pallet</p>
+</dd>
+<dt><a href="#doesSchemaExist">doesSchemaExist(schemaHash)</a> ⇒ <code>Boolean</code></dt>
+<dd><p>The function will returns the Boolean value based on valid/invalid schemaHash.</p>
+</dd>
+</dl>
+
+<a name="createNewSchema"></a>
+
+## createNewSchema(schema_properties) ⇒ <code>JSON</code>
+Create a new schema with the properties provided in the schema_properties json
+The stringified schema and its hash will be returned as required by the extrinsic.
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| schema_properties | <code>JSON</code> | 
+
+<a name="storeSchemaOnChain"></a>
+
+## storeSchemaOnChain(schema, signingKeypair)
+Write a new schema to the chain using the account provided
+This extrinsic can only be called by the accounts in the validator_set pallet
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| schema | <code>JSON</code> | 
+| signingKeypair | <code>String</code> | 
+
+<a name="doesSchemaExist"></a>
+
+## doesSchemaExist(schemaHash) ⇒ <code>Boolean</code>
+The function will returns the Boolean value based on valid/invalid schemaHash.
+
+**Kind**: global function  
+**Returns**: <code>Boolean</code> - Will return true, if valid schemaHash  
+
+| Param | Type |
+| --- | --- |
+| schemaHash | <code>Hex</code> | 
+
+
+<a name="ssidVC"></a>
+
+## SSID VC
+
+### Functions
+
+<dl>
+<dt><a href="#createSsidVC">createSsidVC(properties_json)</a> ⇒ <code>JSON</code></dt>
+<dd><p>The function returns the VC in the expected format, the
+signature field is left blank to be filled by signing function</p>
+</dd>
+<dt><a href="#signSsidVC">signSsidVC(vcJson, signerKeyPair)</a> ⇒ <code>JSON</code></dt>
+<dd><p>Sign a VC using the given verifier_pvkey</p>
+</dd>
+<dt><a href="#verifySsidVC">verifySsidVC(vcJson)</a> ⇒ <code>Boolean</code></dt>
+<dd><p>Verify if the signature is valid and matches the given public_key in ssid_vc</p>
+</dd>
+</dl>
+
+<a name="createSsidVC"></a>
+
+## createSsidVC(properties_json) ⇒ <code>JSON</code>
+The function returns the VC in the expected format, the
+signature field is left blank to be filled by signing function
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| properties_json | <code>JSON</code> | 
+
+<a name="signSsidVC"></a>
+
+## signSsidVC(vcJson, signerKeyPair) ⇒ <code>JSON</code>
+Sign a VC using the given verifier_pvkey
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| vcJson | <code>JSON</code> | 
+| signerKeyPair | <code>KeyPair</code> | 
+
+<a name="verifySsidVC"></a>
+
+## verifySsidVC(vcJson) ⇒ <code>Boolean</code>
+Verify if the signature is valid and matches the given public_key in ssid_vc
+
+**Kind**: global function  
+**Returns**: <code>Boolean</code> - true if valid SSID_VC  
+
+| Param | Type |
+| --- | --- |
+| vcJson | <code>JSON</code> | 

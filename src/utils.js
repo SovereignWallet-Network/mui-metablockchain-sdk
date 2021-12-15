@@ -13,7 +13,7 @@ const VCType = {
 Object.freeze(VCType);
 
 const METABLOCKCHAIN_TYPES = {
-  "PeerId": "(Vec<>)",
+  "PeerId": "OpaquePeerId",
   "identifier": "[u8;32]",
   "public_key": "[u8;32]",
   "metadata": "Vec<u8>",

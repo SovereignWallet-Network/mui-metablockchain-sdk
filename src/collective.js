@@ -42,7 +42,7 @@ async function setMembers(newMembers, prime, oldCount, signingKeypair, api = fal
       });
     } catch (err) {
       // console.log(err);
-      return false;
+      reject(err);
     }
   });
 }
@@ -84,7 +84,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
       });
     } catch (err) {
       // console.log(err);
-      return false;
+      reject(err);
     }
   });
 }
@@ -124,7 +124,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
       });
     } catch (err) {
       // console.log(err);
-      return false;
+      reject(err);
     }
   });
 }
@@ -165,7 +165,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
       });
     } catch (err) {
       // console.log(err);
-      return false;
+      reject(err);
     }
   });
 }
@@ -207,7 +207,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
       });
     } catch (err) {
       // console.log(err);
-      return false;
+      reject(err);
     }
   });
 }
@@ -248,7 +248,7 @@ async function propose(threshold, proposal, lengthCount, signingKeypair, api = f
       });
     } catch (err) {
       // console.log(err);
-      return false;
+      reject(err);
     }
   });
 }
@@ -261,7 +261,7 @@ async function getMembers(api = false) {
   return (await provider.query.council.members()).toHuman();
 }
 /**
- * Get Members of Council
+ * Get Prime of Council
  * @param  {Boolean} api Network Provider
  */
 async function getPrime(api = false) {

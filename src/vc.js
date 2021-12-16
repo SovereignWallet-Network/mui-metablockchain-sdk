@@ -158,7 +158,8 @@
  /**
  * Approve VC
  * @param  {Object} vcID vc_id of VC to be approved
- * @param  {KeyPair} sigKeypair Issuer Key Ring pair
+ * @param  {KeyPair} signingKeyPair Issuer Key Ring pair
+ * @param {APIPromise} api
  * @returns {String} Transaction hash or Error
  */
 async function approveVC(vcId, signingKeyPair, api=false) {
@@ -346,7 +347,7 @@ async function getDIDByVCId(vcId, api = false) {
 }
 
 /**
- * Get DID by VC Id
+ * Get VC history by VC Id
  * @param {String} vcId (hex/base64 version works)
  * @param {ApiPromise} api
  * @returns {String} (false if not found)

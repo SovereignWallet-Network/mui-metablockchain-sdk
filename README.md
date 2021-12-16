@@ -272,7 +272,7 @@ Get Members of Council
 <a name="getPrime"></a>
 
 ## getPrime(api)
-Get Members of Council
+Get Prime of Council
 
 **Kind**: global function  
 
@@ -984,7 +984,7 @@ Create VC
 
 <a name="approveVC"></a>
 
-## approveVC(vcID, sigKeypair) ⇒ <code>String</code>
+## approveVC(vcID, signingKeyPair, api) ⇒ <code>String</code>
 Approve VC
 
 **Kind**: global function  
@@ -993,7 +993,8 @@ Approve VC
 | Param | Type | Description |
 | --- | --- | --- |
 | vcID | <code>Object</code> | vc_id of VC to be approved |
-| sigKeypair | <code>KeyPair</code> | Issuer Key Ring pair |
+| signingKeyPair | <code>KeyPair</code> | Issuer Key Ring pair |
+| api | <code>APIPromise</code> | <code>false</code> | 
 
 <a name="storeVC"></a>
 
@@ -1064,7 +1065,7 @@ Get DID by VC Id
 <a name="getVCHistoryByVCId"></a>
 
 ## getVCHistoryByVCId(vcId, api) ⇒ <code>String</code>
-Get DID by VC Id
+Get VC history by VC Id
 
 **Kind**: global function  
 **Returns**: <code>String</code> - (false if not found)  

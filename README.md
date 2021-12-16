@@ -1,6 +1,8 @@
 ### MUI Metablockchain SDK
+![Integration Test](https://github.com/SovereignWallet-Network/mui-metablockchain-sdk/workflows/Metablock%20SDK%20CI/badge.svg)
+[![npm version](https://badge.fury.io/js/mui-metablockchain-sdk.svg)](https://badge.fury.io/js/mui-metablockchain-sdk)
 
-JS SDK to interface with substrate node of MUI Metablockchain.
+JS SDK to interface with MetaMUI Metablockchain node.
 
 ## Install
 ```

@@ -7,6 +7,10 @@ const IDENTIFIER_MAX_LENGTH = 20;
 const IDENTIFIER_MIN_LENGTH = 3;
 const DID_HEX_LEN = 64;
 
+
+/** Generate Mnemonic
+ * @returns {String} Mnemonic
+ */
 const generateMnemonic = () => mnemonicGenerate();
 
 const checkIdentifierFormat = (identifier) => {
@@ -14,6 +18,7 @@ const checkIdentifierFormat = (identifier) => {
 
   return format.test(identifier);
 };
+
 /**
  * Generate did object to be stored in blockchain.
  * @param {String} mnemonic
@@ -59,7 +64,7 @@ const generateDID = async (mnemonic, identifier, metadata = '') => {
  * @param {Object} DID
  * @param {Object} signingKeypair
  * @param {ApiPromise} api
- * @returns {string} txnId Txnid for storage operation.
+ * @returns {String} txnId Txnid for storage operation.
  */
 function storeDIDOnChain(DID, signingKeypair, api = false) {
   return new Promise(async (resolve, reject) => {
@@ -68,27 +73,29 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
 
       const tx = provider.tx.did.add(DID.public_key, sanitiseDid(DID.identity), DID.metadata);
 
-      await tx.signAndSend(signingKeypair, ({ status, dispatchError }) => {
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }){
         console.log('Transaction status:', status.type);
         if (dispatchError) {
           if (dispatchError.isModule) {
             // for module errors, we have the section indexed, lookup
             const decoded = api.registry.findMetaError(dispatchError.asModule);
             const { documentation, name, section } = decoded;
-            console.log(`${section}.${name}: ${documentation.join(' ')}`);
-            reject('Dispatch Module error');
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(new Error(`${section}.${name}`));
           } else {
             // Other, CannotLookup, BadOrigin, no extra info
-            console.log(dispatchError.toString());
-            reject('Dispatch error');
+            // console.log(dispatchError.toString());
+            reject(new Error(dispatchError.toString()));
           }
         } else if (status.isFinalized) {
-          console.log('Finalized block hash', status.asFinalized.toHex());
-          resolve(status.asFinalized.toHex());
+          // console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
         }
       });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       reject(err);
     }
   });
@@ -97,7 +104,7 @@ function storeDIDOnChain(DID, signingKeypair, api = false) {
 /**
  * Get did information from accountID
  * @param {String} identifier DID Identifier
- * returns {JSON}
+ * @returns {JSON}
  */
 async function getDIDDetails(identifier, api = false) {
   try {
@@ -119,13 +126,28 @@ async function getDIDDetails(identifier, api = false) {
  * Get the accountId for a given DID
  * @param {String} identifier
  * @param {ApiPromise} api
+ * @param {Number} blockNumber
  * @returns {String}
  */
-async function resolveDIDToAccount(identifier, api = false) {
+async function resolveDIDToAccount(identifier, api = false, blockNumber = null) {
   const provider = api || (await buildConnection('local'));
   const did_hex = sanitiseDid(identifier);
-  const data = (await provider.query.did.lookup(did_hex)).toHuman();
-  return data;
+  if(!blockNumber && blockNumber != 0) {
+    return (await provider.query.did.lookup(did_hex)).toHuman();
+  }
+  const didDetails = await getDIDDetails(identifier, provider);
+  if(blockNumber >= didDetails.added_block) {
+    return (await provider.query.did.lookup(did_hex)).toHuman();
+  }
+  const keyHistories = await getDidKeyHistory(identifier, provider);
+  if(!keyHistories) {
+    return null;
+  }
+  const keyIndex = keyHistories.reverse().findIndex((value) => blockNumber >= parseInt(value[1]));
+  if(keyIndex < 0) {
+    return null;
+  }
+  return keyHistories[keyIndex][0];
 }
 
 /**
@@ -153,12 +175,39 @@ async function resolveAccountIdToDid(accountId, api = false) {
  * @param {ApiPromise} api
  */
 async function updateDidKey(identifier, newKey, signingKeypair, api) {
-  const provider = api || (await buildConnection('local'));
-  const did_hex = sanitiseDid(identifier);
-  // call the rotateKey extrinsinc
-  const tx = provider.tx.did.rotateKey(did_hex, newKey);
-  const signedtx = await tx.signAndSend(signingKeypair);
-  return signedtx.toHex();
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+
+      const did_hex = sanitiseDid(identifier);
+      // call the rotateKey extrinsinc
+      const tx = provider.tx.did.rotateKey(did_hex, newKey);
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }){
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(new Error(`${section}.${name}`));
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            // console.log(dispatchError.toString());
+            reject(new Error(dispatchError.toString()));
+          }
+        } else if (status.isFinalized) {
+          // console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
+        }
+      });
+    } catch (err) {
+      // console.log(err);
+      reject(err);
+    }
+  });
 }
 
 /**
@@ -197,7 +246,7 @@ const sanitiseDid = (did) => {
  * Check if the user is an approved validator
  * @param {String} identifier
  * @param {ApiPromise} api
- * @returns {Bool}
+ * @returns {Boolean}
  */
 async function isDidValidator(identifier, api = false) {
   const provider = api || (await buildConnection('local'));
@@ -210,7 +259,7 @@ async function isDidValidator(identifier, api = false) {
  * Fetch the history of rotated keys for the specified DID
  * @param {String} identifier
  * @param {ApiPromise} api
- * returns Array
+ * @returns {Array}
  */
 async function getDidKeyHistory(identifier, api = false) {
   const provider = api || (await buildConnection('local'));
@@ -223,15 +272,41 @@ async function getDidKeyHistory(identifier, api = false) {
  *
  * @param {String} identifier
  * @param {String} metadata
- * @param {KeyringObj} signingKeypair // of a validator account
+ * @param {KeyringObj} signingKeypair of a validator account
  * @param {ApiPromise} api
  */
 async function updateMetadata(identifier, metadata, signingKeypair, api = false) {
-  const provider = api || (await buildConnection('local'));
-  const did_hex = sanitiseDid(identifier);
-  const tx = provider.tx.did.updateMetadata(did_hex, metadata);
-  const signedtx = await tx.signAndSend(signingKeypair);
-  return signedtx.toHex();
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      const did_hex = sanitiseDid(identifier);
+      const tx = provider.tx.did.updateMetadata(did_hex, metadata);
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }){
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(new Error(`${section}.${name}`));
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            // console.log(dispatchError.toString());
+            reject(new Error(dispatchError.toString()));
+          }
+        } else if (status.isFinalized) {
+          // console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
+        }
+      });
+    } catch (err) {
+      // console.log(err);
+      reject(err);
+    }
+  });
 }
 
 module.exports = {

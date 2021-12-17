@@ -7,7 +7,8 @@ async function transfer_tokens() {
   // Use the default validator to create new did
   const keyring = new Keyring({ type: 'sr25519' });
   const sig_key_pair = await keyring.addFromUri('//Alice');
-  let res = await token.transferToken("did:ssid:swn2", "1", "100", sig_key_pair, provider);
+  const vc_id = '0xdcc9a36b426a2f3ce3c1ddbd75905de3dd9f33d0e2e413d1b248a368fe43d624';
+  let res = await token.transferToken(vc_id, "did:ssid:swn2", "1", "100", sig_key_pair, provider);
   console.log(res);
 }
 
@@ -16,7 +17,8 @@ async function issue_tokens() {
     // Use the default validator to create new did
     const keyring = new Keyring({ type: 'sr25519' });
     const sig_key_pair = await keyring.addFromUri('//Alice');
-    let res = await token.issueNewToken("did:ssid:swn2", "1", "XYZ", "100", sig_key_pair, provider);
+    const vc_id = '0xdcc9a36b426a2f3ce3c1ddbd75905de3dd9f33d0e2e413d1b248a368fe43d624';
+    let res = await token.issueToken(vc_id, "1000000", sig_key_pair, provider);
     console.log(res);
   }
 
@@ -28,7 +30,7 @@ async function get_token_bal() {
 
 async function gettokennametokenid() {
     const provider = await buildConnection('local');
-    let res = await token.getTokenNameFromTokenId("1");
+    let res = await token.getTokenNameFromCurrencyId("1");
     console.log(res);
 }
 

@@ -18,7 +18,7 @@ async function sendTransaction(
   receiverDID,
   amount,
   api = false,
-  nonce = -1,
+  nonce = false,
 ) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -30,7 +30,7 @@ async function sendTransaction(
       }
       const tx = await provider.tx.balances
         .transfer(receiverAccountID, amount);
-      const nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      nonce = nonce || await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       const signedTx = tx.sign(senderAccountKeyPair, {nonce});
       await signedTx.send(function ({ status, dispatchError }) {
           console.log('Transaction status:', status.type);
@@ -75,7 +75,7 @@ async function transfer(
   amount,
   memo,
   api = false,
-  nonce = -1,
+  nonce = false,
 ) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -87,7 +87,7 @@ async function transfer(
       }
       const tx = provider.tx.balances
         .transferWithMemo(receiverAccountID, amount, memo);
-      const nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      nonce = nonce || await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       const signedTx = tx.sign(senderAccountKeyPair, {nonce});
       return signedTx.send(function ({ status, dispatchError }) {
           console.log('Transaction status:', status.type);

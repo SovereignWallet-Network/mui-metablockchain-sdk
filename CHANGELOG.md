@@ -1,4 +1,13 @@
 # CHANGELOG
+
+## 2.1.1 Jan 04, 2022
+
+Upgrade priority: Low.
+
+Changes:
+
+- Fixed nonce applying issue in transaction module functions
+
 ## 2.1.0 Dec 17, 2021
 
 Upgrade priority: Medium. Recommended for users who want to use the VC & CBDC token pallet features of MetaMUI blockchain release v1.2.0

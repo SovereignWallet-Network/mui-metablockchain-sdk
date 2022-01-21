@@ -51,13 +51,11 @@
    if(!currencyCode) {
      throw new Error('Currency code is required');
    }
-   // Removing extra spaces
-   currencyCode = currencyCode.replace(/ /g, '');
    if(currencyCode.length > utils.CURRENCY_CODE_BYTES) {
      throw new Error('Currency Code should not exceed 8 chars');
    }
    if(!utils.isUpperAndValid(currencyCode)){
-     throw new Error('Only Upper case characters are allowed for currency code');
+     throw new Error('Only Upper case characters with no space are allowed for currency code');
    }
    let vcProperty = {
      token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),

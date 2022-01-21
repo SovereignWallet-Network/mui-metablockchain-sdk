@@ -1,5 +1,6 @@
 const assert = require('assert');
 const vc = require('../src/vc.js');
+const tx = require('../src/transaction.js');
 const did = require('../src/did.js');
 const { initKeyring } = require('../src/config');
 const { buildConnection } = require('../src/connection.js');
@@ -37,7 +38,7 @@ describe('VC works correctly', () => {
       tokenName: 'test',
       reservableBalance: 1000,
       decimal: 6,
-      currencyCode: 'OT H ',
+      currencyCode: 'OTH',
     };
     let owner = TEST_DID;
     let issuers = [
@@ -128,13 +129,19 @@ describe('VC works correctly', () => {
     try {
       await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     } catch (e) {
-      assert.strictEqual(e.message, "Only Upper case characters are allowed for currency code");
+      assert.strictEqual(e.message, "Only Upper case characters with no space are allowed for currency code");
     }
     tokenVC.currencyCode = 'ABC12';
     try {
       await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
     } catch (e) {
-      assert.strictEqual(e.message, "Only Upper case characters are allowed for currency code");
+      assert.strictEqual(e.message, "Only Upper case characters with no space are allowed for currency code");
+    }
+    tokenVC.currencyCode = 'AB C ';
+    try {
+      await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+    } catch (e) {
+      assert.strictEqual(e.message, "Only Upper case characters with no space are allowed for currency code");
     }
   });
 

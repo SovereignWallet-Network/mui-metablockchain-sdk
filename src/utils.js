@@ -55,7 +55,7 @@ const METABLOCKCHAIN_TYPES = {
     ]
   },
   "TokenVC": {
-    "token_name": "[u8;16]",
+    "token_name": "[u8;32]",
     "reservable_balance": "Balance",
     "decimal": "u8",
     "currency_code": "[u8;8]"
@@ -135,10 +135,10 @@ const ENCODE_TYPES = {
   },
   "decimal": "u8",
   "currency_code": "[u8;8]",
-  "token_bytes": "[u8;16]",
+  "token_bytes": "[u8;32]",
 };
 
-const TOKEN_NAME_BYTES = 16;
+const TOKEN_NAME_BYTES = 32;
 const CURRENCY_CODE_BYTES = 8;
 const VC_PROPERTY_BYTES = 128;
 

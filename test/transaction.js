@@ -31,6 +31,10 @@ describe('Transaction works correctly', () => {
       };
       try {
         await did.storeDIDOnChain(didObjDave, sigKeypairWithBal, provider);
+      } catch(err) {
+        console.log(err);
+      }
+      try {
         await did.storeDIDOnChain(didObj, sigKeypairWithBal, provider);
       } catch(err) {
         console.log(err);

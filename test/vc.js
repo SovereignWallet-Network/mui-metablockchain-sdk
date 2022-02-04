@@ -193,6 +193,22 @@ describe('VC works correctly', () => {
         try {
           await did.storeDIDOnChain(didObj, sigKeypair, provider);
         } catch (err) { }
+        try {
+          const didObjDave = {
+            public_key: signKeypairDave.publicKey, // this is the public key linked to the did
+            identity: TEST_DAVE_DID, // this is the actual did
+            metadata: 'Metadata',
+          };
+          await did.storeDIDOnChain(didObjDave, sigKeypair, provider);
+        } catch (err) { }
+        try {
+          const didObjEve = {
+            public_key: signKeypairEve.publicKey, // this is the public key linked to the did
+            identity: EVE_DID, // this is the actual did
+            metadata: 'Metadata',
+          };
+          await did.storeDIDOnChain(didObjEve, sigKeypair, provider);
+        } catch (err) { }
 
         const nonce = await provider.rpc.system.accountNextIndex(sigKeypair.address);
         await tx.sendTransaction(sigKeypair, TEST_DID, '20000000', provider, nonce);
@@ -256,15 +272,24 @@ describe('VC works correctly', () => {
       assert.strictEqual(vcs[1], 'Inactive');
     });
 
+    it('Store Generic VC works correctly', async () => {
+      let genericVC = {
+        url: 'https://metabit.exchange',
+      };
+      let owner = TEST_DID;
+      let issuers = [
+        TEST_SWN_DID,
+        EVE_DID,
+      ];
+      const vcHex = await vc.generateVC(genericVC, owner, issuers, "GenericVC", sigKeypair);
+      const transaction = await vc.storeVC(vcHex, sigKeypairBob, provider);
+      const vcsByDid = await vc.getVCIdsByDID(TEST_DID, provider);
+      vcId = vcsByDid[2] || vcsByDid[1] || vcsByDid[0];
+      await vc.approveVC(vcId, signKeypairEve, provider);
+      assert.doesNotReject(transaction);
+    });
+
     it('Auto Active VC Status on sign works correctly', async () => {
-      try {
-        const didObjDave = {
-          public_key: signKeypairDave.publicKey, // this is the public key linked to the did
-          identity: TEST_DAVE_DID, // this is the actual did
-          metadata: 'Metadata',
-        };
-        await did.storeDIDOnChain(didObjDave, sigKeypair, provider);
-      } catch (err) { }
       let owner = TEST_DID;
       let issuers = [
         TEST_SWN_DID,
@@ -287,7 +312,7 @@ describe('VC works correctly', () => {
       
       await sudoStoreVC(actualHex, sigKeypair, provider);
       const vcsByDid = await vc.getVCIdsByDID(TEST_DID, provider);
-      vcId = vcsByDid[2] || vcsByDid[1] || vcsByDid[0];
+      vcId = vcsByDid[3] || vcsByDid[2] || vcsByDid[1] || vcsByDid[0];
       let vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Inactive');
       vc.approveVC(vcId, signKeypairEve, provider);

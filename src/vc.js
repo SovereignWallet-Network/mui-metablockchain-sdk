@@ -104,6 +104,19 @@
    return utils.encodeData(vcProperty, VCType.TokenTransferVC)
      .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
  }
+
+ /** Encodes Generic VC and pads with appropriate bytes
+  * @param  {Object} vcProperty
+  * @param  {String} vcProperty.url
+  * @returns {String} Token VC Hex String
+  */
+  async function createGenericVC({ url }) {
+    let vcProperty = {
+      url,
+    };
+    return utils.encodeData(vcProperty, VCType.GenericVC)
+      .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
+  }
  
  /**
   * Create VC
@@ -118,18 +131,21 @@
  async function generateVC(vcProperty, owner, issuers, vcType, sigKeypair, api=false) {
    let encodedVCProperty;
    switch (vcType) {
-     case VCType.TokenVC:
-       encodedVCProperty = createTokenVC(vcProperty);
-       break;
-     case VCType.MintTokens:
-     case VCType.SlashTokens:
-       encodedVCProperty = await createMintSlashVC(vcProperty, api);
-       break;
-     case VCType.TokenTransferVC:
-       encodedVCProperty = await createTokenTransferVC(vcProperty, api);
-       break;
-     default:
-       throw new Error("Unknown VC Type");
+    case VCType.TokenVC:
+      encodedVCProperty = createTokenVC(vcProperty);
+      break;
+    case VCType.MintTokens:
+    case VCType.SlashTokens:
+      encodedVCProperty = await createMintSlashVC(vcProperty, api);
+      break;
+    case VCType.TokenTransferVC:
+      encodedVCProperty = await createTokenTransferVC(vcProperty, api);
+      break;
+    case VCType.GenericVC:
+      encodedVCProperty = createGenericVC(vcProperty);
+      break;
+    default:
+      throw new Error("Unknown VC Type");
    }
    owner = did.sanitiseDid(owner);
    issuers = issuers.map(issuer => did.sanitiseDid(issuer));

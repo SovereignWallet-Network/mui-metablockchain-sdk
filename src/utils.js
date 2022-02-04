@@ -9,6 +9,7 @@ const VCType = {
   SlashTokens: "SlashTokens",
   TokenTransferVC: "TokenTransferVC",
   SlashMintTokens: "SlashMintTokens",
+  GenericVC: "GenericVC",
 };
 Object.freeze(VCType);
 
@@ -51,7 +52,8 @@ const METABLOCKCHAIN_TYPES = {
       "TokenVC",
       "SlashTokens",
       "MintTokens",
-      "TokenTransferVC"
+      "TokenTransferVC",
+      "GenericVC"
     ]
   },
   "TokenVC": {
@@ -69,6 +71,9 @@ const METABLOCKCHAIN_TYPES = {
     "vc_id": "VCid",
     "currency_code": "CurrencyCode",
     "amount": "u128"
+  },
+  "GenericVC": {
+    "url": "[u8;64]"
   },
   "VCHash": "Vec<u8>",
   "VCStatus": {

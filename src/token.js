@@ -86,7 +86,6 @@ async function issueToken(
       }
       const ccode = sanitiseCCode(currencyCode);
       tokenAmount = await getFormattedTokenAmount(ccode, tokenAmount, provider);
-      console.log(tokenAmount);
       const tx = provider.tx.tokens.transfer(receiverAccountID, ccode, tokenAmount);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});

@@ -85,11 +85,20 @@ async function issueToken(
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
       const ccode = sanitiseCCode(currencyCode);
-      const tokenData = await getTokenData(ccode, provider);
-      tokenAmount = tokenAmount * (Math.pow(10,tokenData.decimal));
-      if (tokenAmount < 1) {
-        throw new Error(`Invalid token amount, max supported decimal for this token is ${tokenData.decimal}`);
+      let amount_decimals = 0;
+      tokenAmount = String(tokenAmount);
+      // Check if valid number or not
+      if (isNaN("tokenAmount")) {
+        throw new Error(`Invalid token amount!`);
       }
+      if (tokenAmount.includes('.')) {
+        amount_decimals = tokenAmount.split('.')[1].length;
+      };
+      const tokenData = await getTokenData(ccode, provider);
+      if (amount_decimals > tokenData.decimal) {
+        throw new Error(`Invalid token amount, max supported decimal by ${tokenData.currency_code} is ${tokenData.decimal}`);
+      }
+      tokenAmount = Math.round(parseFloat(tokenAmount) * (Math.pow(10,tokenData.decimal)));
       const tx = provider.tx.tokens.transfer(receiverAccountID, ccode, tokenAmount);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});

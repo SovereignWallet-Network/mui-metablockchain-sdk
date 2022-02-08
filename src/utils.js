@@ -1,4 +1,4 @@
-const { u8aToHex, hexToU8a, hexToString: polkadotHextoString, stringToU8a } = require('@polkadot/util');
+const { u8aToHex, hexToU8a, hexToString: polkadotHextoString, stringToU8a, stringToHex } = require('@polkadot/util');
 const { base58Decode, blake2AsHex } = require('@polkadot/util-crypto');
 
 const types = require('@polkadot/types');
@@ -73,7 +73,7 @@ const METABLOCKCHAIN_TYPES = {
     "amount": "u128"
   },
   "GenericVC": {
-    "url": "[u8;64]"
+    "cid": "[u8;64]"
   },
   "VCHash": "Vec<u8>",
   "VCStatus": {
@@ -141,11 +141,13 @@ const ENCODE_TYPES = {
   "decimal": "u8",
   "currency_code": "[u8;8]",
   "token_bytes": "[u8;16]",
+  "CID": "[u8;64]",
 };
 
 const TOKEN_NAME_BYTES = 16;
 const CURRENCY_CODE_BYTES = 8;
 const VC_PROPERTY_BYTES = 128;
+const CID_BYTES = 64;
 
 /**
  * @param  {Bytes} inputBytes u8[]
@@ -255,10 +257,37 @@ function tidy(s) {
     case VCType.TokenTransferVC:
       vcs["vc_property"] = getVCS(vcs.vc_property, VCType.TokenTransferVC);
       break;
+    case VCType.GenericVC:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.GenericVC);
+      break;
     default:
-      throw new Error("Unknown  Type");
+      throw new Error("Unknown Type");
   }
   return vcs;
+}
+
+/** Sort object by keys
+ * @param  {Object} unorderedObj unordered object
+ * @returns {Object} ordered object by key
+ */
+function sortObjectByKeys(unorderedObj) {
+  return Object.keys(unorderedObj).sort().reduce(
+    (obj, key) => { 
+      obj[key] = unorderedObj[key]; 
+      return obj;
+    },
+    {}
+  );
+}
+
+/** generate blake hash of js object
+ * @param  {Object} unordered unordered object
+ * @returns {Object} ordered object by key
+ */
+function generateObjectHash(object) {
+  const sortedData = sortObjectByKeys(object);
+  const encodedData = stringToHex(JSON.stringify(sortedData));
+  return blake2AsHex(encodedData);
 }
 
 module.exports = {
@@ -266,6 +295,7 @@ module.exports = {
   TOKEN_NAME_BYTES,
   CURRENCY_CODE_BYTES,
   VC_PROPERTY_BYTES,
+  CID_BYTES,
   VCType,
   bytesToHex,
   hexToBytes,
@@ -277,5 +307,7 @@ module.exports = {
   vcHexToVcId,
   isUpperAndValid,
   getVCS,
-  decodeVC
+  decodeVC,
+  sortObjectByKeys,
+  generateObjectHash,
 };

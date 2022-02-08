@@ -2,7 +2,7 @@ const assert = require('assert');
 const vc = require('../src/vc.js');
 const tx = require('../src/transaction.js');
 const did = require('../src/did.js');
-const { initKeyring } = require('../src/config');
+const { initKeyring, SSID_BASE_URL } = require('../src/config');
 const { buildConnection } = require('../src/connection.js');
 const constants = require('./test_constants');
 const utils = require('../src/utils');
@@ -20,6 +20,7 @@ describe('VC works correctly', () => {
   let signKeypairEve;
   let signKeypairDave;
   let actualHex;
+  let ssidUrl;
   let eveSign;
   const TEST_DAVE_DID = "did:ssid:dave";
   const TEST_SWN_DID = "did:ssid:swn";
@@ -28,6 +29,7 @@ describe('VC works correctly', () => {
     keyring = await initKeyring();
     sigKeypair = await keyring.addFromUri('//Alice');
     provider = await buildConnection(constants.providerNetwork);
+    ssidUrl = SSID_BASE_URL[constants.providerNetwork];
     sigKeypairBob = await keyring.addFromUri('//Bob');
     signKeypairEve = await keyring.addFromUri('//Eve');
     signKeypairDave = await keyring.addFromUri('//Dave');
@@ -222,7 +224,7 @@ describe('VC works correctly', () => {
 
     it('Get VC Ids by DID after storing VC works correctly', async () => {
       const vcs = await vc.getVCIdsByDID(TEST_DID, provider);
-      vcId = vcs[1] || vcs[0];
+      vcId = vcsByDid[vcsByDid.length-1];
       assert.strictEqual(vcs.length > 0, true);
     });
 
@@ -274,19 +276,22 @@ describe('VC works correctly', () => {
 
     it('Store Generic VC works correctly', async () => {
       let genericVC = {
-        url: 'https://metabit.exchange',
+        cid: 'yD5HYVIgzl3_3Ze3fMgc',
       };
       let owner = TEST_DID;
       let issuers = [
         TEST_SWN_DID,
         EVE_DID,
       ];
-      const vcHex = await vc.generateVC(genericVC, owner, issuers, "GenericVC", sigKeypair);
+      const vcHex = await vc.generateVC(genericVC, owner, issuers, "GenericVC", sigKeypair, provider, ssidUrl);
       const transaction = await vc.storeVC(vcHex, sigKeypairBob, provider);
       const vcsByDid = await vc.getVCIdsByDID(TEST_DID, provider);
-      vcId = vcsByDid[2] || vcsByDid[1] || vcsByDid[0];
-      await vc.approveVC(vcId, signKeypairEve, provider);
+      vcId = vcsByDid[vcsByDid.length-1];
+      await vc.approveVC(vcId, signKeypairEve, provider, ssidUrl);
       assert.doesNotReject(transaction);
+      let data = await vc.getGenericVCData(vcId, ssidUrl, provider);
+      let verifyData = await vc.verifyGenericVC(data.vcId, data.data, provider);
+      assert.strictEqual(verifyData, true);
     });
 
     it('Auto Active VC Status on sign works correctly', async () => {
@@ -312,7 +317,7 @@ describe('VC works correctly', () => {
       
       await sudoStoreVC(actualHex, sigKeypair, provider);
       const vcsByDid = await vc.getVCIdsByDID(TEST_DID, provider);
-      vcId = vcsByDid[3] || vcsByDid[2] || vcsByDid[1] || vcsByDid[0];
+      vcId = vcsByDid[vcsByDid.length-1];
       let vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Inactive');
       vc.approveVC(vcId, signKeypairEve, provider);

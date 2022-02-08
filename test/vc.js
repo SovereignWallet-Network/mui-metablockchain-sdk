@@ -6,8 +6,6 @@ const { initKeyring, SSID_BASE_URL } = require('../src/config');
 const { buildConnection } = require('../src/connection.js');
 const constants = require('./test_constants');
 const utils = require('../src/utils');
-const { hexToU8a } = require('@polkadot/util');
-const { signatureVerify, blake2AsU8a, blake2AsHex } = require('@polkadot/util-crypto');
 const { removeDid, storeVC, sudoStoreVC } = require('./helper/helper.js');
 
 describe('VC works correctly', () => {
@@ -47,7 +45,7 @@ describe('VC works correctly', () => {
       TEST_SWN_DID,
       EVE_DID,
     ];
-    actualHex = await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+    actualHex = await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypair);
     let actualObject = utils.decodeHex(actualHex, 'VC');
     let expectedObject = {
       hash: '0x1bfef48398ef3adcc90370f64c22d520ed45280455f6ef7df369005dd51989c7',
@@ -224,7 +222,7 @@ describe('VC works correctly', () => {
 
     it('Get VC Ids by DID after storing VC works correctly', async () => {
       const vcs = await vc.getVCIdsByDID(TEST_DID, provider);
-      vcId = vcsByDid[vcsByDid.length-1];
+      vcId = vcs[vcs.length-1];
       assert.strictEqual(vcs.length > 0, true);
     });
 
@@ -260,11 +258,6 @@ describe('VC works correctly', () => {
     it('Get VCs works correctly after signing', async () => {
       const vcs = await vc.getVCs(vcId, provider);
       assert.notStrictEqual(vcs, null);
-    });
-
-    it('Get VCs has new signature', async () => {
-      const vcs = await vc.getVCs(vcId, provider);
-      assert.strictEqual(vcs[0].signatures.length, 2);
     });
 
     it('Update status works correctly', async () => {
@@ -320,10 +313,10 @@ describe('VC works correctly', () => {
       vcId = vcsByDid[vcsByDid.length-1];
       let vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Inactive');
-      vc.approveVC(vcId, signKeypairEve, provider);
+      await vc.approveVC(vcId, signKeypairEve, provider);
       vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Inactive');
-      vc.approveVC(vcId, signKeypairDave, provider);
+      await vc.approveVC(vcId, signKeypairDave, provider);
       vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Active');
     });

@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.1.2 Feb 08, 2022
+
+Upgrade priority: High.
+
+Changes:
+
+- Fixed Token amount calculation bug for decimal values, Recommended for all users who use tokens on MetaMUI blockchain network
+
 ## 2.1.1 Jan 04, 2022
 
 Upgrade priority: Low.

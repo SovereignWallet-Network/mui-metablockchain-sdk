@@ -210,6 +210,24 @@ describe('VC works correctly', () => {
           await did.storeDIDOnChain(didObjEve, sigKeypair, provider);
         } catch (err) { }
 
+        try {
+          const didObjDave = {
+            public_key: signKeypairDave.publicKey, // this is the public key linked to the did
+            identity: TEST_DAVE_DID, // this is the actual did
+            metadata: 'Metadata',
+          };
+          await did.storeDIDOnChain(didObjDave, sigKeypair, provider);
+        } catch (err) { }
+
+        const didObjEve = {
+          public_key: signKeypairEve.publicKey, // this is the public key linked to the did
+          identity: EVE_DID, // this is the actual did
+          metadata: 'Metadata',
+        };
+        try {
+          await did.storeDIDOnChain(didObjEve, sigKeypair, provider);
+        } catch (err) { }
+
         const nonce = await provider.rpc.system.accountNextIndex(sigKeypair.address);
         await tx.sendTransaction(sigKeypair, TEST_DID, '20000000', provider, nonce);
       }
@@ -300,14 +318,7 @@ describe('VC works correctly', () => {
         decimal: 6,
         currencyCode: 'OTH',
       };
-      const toSign = {
-        vcType: "TokenVC",
-        vcProperty: tokenVC,
-        owner,
-        issuers,
-      }
       actualHex = await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypair);
-      
       await sudoStoreVC(actualHex, sigKeypair, provider);
       const vcsByDid = await vc.getVCIdsByDID(TEST_DID, provider);
       vcId = vcsByDid[vcsByDid.length-1];

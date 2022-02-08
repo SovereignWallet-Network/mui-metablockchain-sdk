@@ -6,8 +6,6 @@ const { initKeyring } = require('../src/config');
 const { buildConnection } = require('../src/connection.js');
 const constants = require('./test_constants');
 const utils = require('../src/utils');
-const { hexToU8a } = require('@polkadot/util');
-const { signatureVerify, blake2AsU8a, blake2AsHex } = require('@polkadot/util-crypto');
 const { removeDid, storeVC, sudoStoreVC } = require('./helper/helper.js');
 
 describe('VC works correctly', () => {
@@ -45,7 +43,7 @@ describe('VC works correctly', () => {
       TEST_SWN_DID,
       EVE_DID,
     ];
-    actualHex = await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypairBob);
+    actualHex = await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypair);
     let actualObject = utils.decodeHex(actualHex, 'VC');
     let expectedObject = {
       hash: '0x1bfef48398ef3adcc90370f64c22d520ed45280455f6ef7df369005dd51989c7',
@@ -194,6 +192,24 @@ describe('VC works correctly', () => {
           await did.storeDIDOnChain(didObj, sigKeypair, provider);
         } catch (err) { }
 
+        try {
+          const didObjDave = {
+            public_key: signKeypairDave.publicKey, // this is the public key linked to the did
+            identity: TEST_DAVE_DID, // this is the actual did
+            metadata: 'Metadata',
+          };
+          await did.storeDIDOnChain(didObjDave, sigKeypair, provider);
+        } catch (err) { }
+
+        const didObjEve = {
+          public_key: signKeypairEve.publicKey, // this is the public key linked to the did
+          identity: EVE_DID, // this is the actual did
+          metadata: 'Metadata',
+        };
+        try {
+          await did.storeDIDOnChain(didObjEve, sigKeypair, provider);
+        } catch (err) { }
+
         const nonce = await provider.rpc.system.accountNextIndex(sigKeypair.address);
         await tx.sendTransaction(sigKeypair, TEST_DID, '20000000', provider, nonce);
       }
@@ -206,7 +222,7 @@ describe('VC works correctly', () => {
 
     it('Get VC Ids by DID after storing VC works correctly', async () => {
       const vcs = await vc.getVCIdsByDID(TEST_DID, provider);
-      vcId = vcs[1] || vcs[0];
+      vcId = vcs[vcs.length-1];
       assert.strictEqual(vcs.length > 0, true);
     });
 
@@ -244,11 +260,6 @@ describe('VC works correctly', () => {
       assert.notStrictEqual(vcs, null);
     });
 
-    it('Get VCs has new signature', async () => {
-      const vcs = await vc.getVCs(vcId, provider);
-      assert.strictEqual(vcs[0].signatures.length, 2);
-    });
-
     it('Update status works correctly', async () => {
       const transaction = await vc.updateStatus(vcId, { InActive: 1 }, sigKeypair, provider);
       assert.doesNotReject(transaction);
@@ -257,14 +268,6 @@ describe('VC works correctly', () => {
     });
 
     it('Auto Active VC Status on sign works correctly', async () => {
-      try {
-        const didObjDave = {
-          public_key: signKeypairDave.publicKey, // this is the public key linked to the did
-          identity: TEST_DAVE_DID, // this is the actual did
-          metadata: 'Metadata',
-        };
-        await did.storeDIDOnChain(didObjDave, sigKeypair, provider);
-      } catch (err) { }
       let owner = TEST_DID;
       let issuers = [
         TEST_SWN_DID,
@@ -277,23 +280,16 @@ describe('VC works correctly', () => {
         decimal: 6,
         currencyCode: 'OTH',
       };
-      const toSign = {
-        vcType: "TokenVC",
-        vcProperty: tokenVC,
-        owner,
-        issuers,
-      }
       actualHex = await vc.generateVC(tokenVC, owner, issuers, "TokenVC", sigKeypair);
-      
       await sudoStoreVC(actualHex, sigKeypair, provider);
       const vcsByDid = await vc.getVCIdsByDID(TEST_DID, provider);
-      vcId = vcsByDid[2] || vcsByDid[1] || vcsByDid[0];
+      vcId = vcsByDid[vcsByDid.length-1];
       let vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Inactive');
-      vc.approveVC(vcId, signKeypairEve, provider);
+      await vc.approveVC(vcId, signKeypairEve, provider);
       vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Inactive');
-      vc.approveVC(vcId, signKeypairDave, provider);
+      await vc.approveVC(vcId, signKeypairDave, provider);
       vcs = await vc.getVCs(vcId, provider);
       assert.strictEqual(vcs[1], 'Active');
     });

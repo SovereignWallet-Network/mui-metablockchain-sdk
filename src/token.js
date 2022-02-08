@@ -85,11 +85,7 @@ async function issueToken(
         throw new Error('tokens.RecipentDIDNotRegistered');
       }
       const ccode = sanitiseCCode(currencyCode);
-      const tokenData = await getTokenData(ccode, provider);
-      tokenAmount = tokenAmount * (Math.pow(10,tokenData.decimal));
-      if (tokenAmount < 1) {
-        throw new Error(`Invalid token amount, max supported decimal for this token is ${tokenData.decimal}`);
-      }
+      tokenAmount = await getFormattedTokenAmount(ccode, tokenAmount, provider);
       const tx = provider.tx.tokens.transfer(receiverAccountID, ccode, tokenAmount);
       let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
       let signedTx = tx.sign(senderAccountKeyPair, {nonce});
@@ -552,6 +548,32 @@ async function withdrawTreasuryReserve(
   return hex_code;
 }
 
+/**
+ * Formats the given amount into lowest form based on the decimals supported by given token.
+ * 
+ * @param {String} currency_code in the sanitised form
+ * @param {String} tokenAmount in the highest form
+ * @param {APIPromise} provider
+ * @return {Number} tokenAmount in lowest form else error
+ */
+async function getFormattedTokenAmount(currencyCode, tokenAmount, provider) {
+  let amount_decimals = 0;
+  tokenAmount = String(tokenAmount);
+  // Check if valid number or not
+  if (isNaN(tokenAmount)) {
+    throw new Error(`Invalid token amount!`);
+  }
+  if (tokenAmount.includes('.')) {
+    amount_decimals = tokenAmount.split('.')[1].length;
+  };
+  const tokenData = await getTokenData(currencyCode, provider);
+  if (amount_decimals > tokenData.decimal) {
+    throw new Error(`Invalid token amount, max supported decimal by ${tokenData.currency_code} is ${tokenData.decimal}`);
+  }
+  tokenAmount = Math.round(parseFloat(tokenAmount) * (Math.pow(10,tokenData.decimal)));
+  return tokenAmount;
+}
+
 module.exports = {
   transferToken,
   transferAll,
@@ -569,4 +591,5 @@ module.exports = {
   transferTokenWithVC,
   setBalance,
   sanitiseCCode,
+  getFormattedTokenAmount,
 };

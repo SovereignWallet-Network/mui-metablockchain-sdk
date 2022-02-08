@@ -26,7 +26,7 @@
  const { VCType } = require('./utils.js');
  const did = require('./did.js');
  const utils = require('./utils.js');
- const { getTokenData } = require('./token');
+ const { getFormattedTokenAmount } = require('./token');
  const {
   createVC,
   signVC,
@@ -51,13 +51,11 @@
    if(!currencyCode) {
      throw new Error('Currency code is required');
    }
-   // Removing extra spaces
-   currencyCode = currencyCode.replace(/ /g, '');
    if(currencyCode.length > utils.CURRENCY_CODE_BYTES) {
      throw new Error('Currency Code should not exceed 8 chars');
    }
    if(!utils.isUpperAndValid(currencyCode)){
-     throw new Error('Only Upper case characters are allowed for currency code');
+     throw new Error('Only Upper case characters with no space are allowed for currency code');
    }
    let vcProperty = {
      token_name: utils.encodeData(tokenName.padEnd(utils.TOKEN_NAME_BYTES, '\0'), 'token_bytes'),
@@ -78,11 +76,11 @@
   */
   async function createMintSlashVC({ vcId, currencyCode, amount }, api=false) {
    const provider = api || (await buildConnection('local'));
-   let tokenData = await getTokenData(currencyCode, provider);
+   let tokenAmount = await getFormattedTokenAmount(currencyCode, amount, provider);
    let vcProperty = {
      vc_id: vcId,
      currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
-     amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
+     amount: utils.encodeData(tokenAmount, 'Balance'),
    };
    return utils.encodeData(vcProperty, VCType.SlashMintTokens)
      .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
@@ -97,11 +95,11 @@
   */
   async function createTokenTransferVC({ vcId, currencyCode, amount }, api=false) {
    const provider = api || (await buildConnection('local'));
-   let tokenData = await getTokenData(currencyCode, provider);
+   let tokenAmount = await getFormattedTokenAmount(currencyCode, amount, provider);
    let vcProperty = {
      vc_id: vcId,
      currency_code: utils.encodeData(currencyCode.padEnd(utils.CURRENCY_CODE_BYTES, '\0'), 'CurrencyCode'),
-     amount: utils.encodeData(amount*(Math.pow(10,tokenData.decimal)), 'Balance'),
+     amount: utils.encodeData(tokenAmount, 'Balance'),
    };
    return utils.encodeData(vcProperty, VCType.TokenTransferVC)
      .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x

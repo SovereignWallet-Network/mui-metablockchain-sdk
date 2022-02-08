@@ -70,7 +70,7 @@ describe('DID Module works correctly', () => {
 
     // return false for non existent did - this accountid is not expected to have a DID
     const data2 = await did.resolveAccountIdToDid(
-      '5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2',
+      '5ES8sejoGKNyPgSpZFe5MdJCynKZcXTrukyjKM5vL2yxeY3r',
       provider
     );
     assert.strictEqual(data2, false);

@@ -11,8 +11,8 @@ const METABLOCKCHAIN_PROVIDER = {
 const SSID_BASE_URL = {
   local: 'https://ssid.metabit.exchange/dev',
   dev: 'https://ssid.metabit.exchange/dev',
-  testnet: 'https://',
-  mainnet: 'https://',
+  testnet: 'https://ssid.metabit.exchange/dev',
+  mainnet: 'https://ssid.metabit.exchange/prod',
 }
 
 const initKeyring = async (type = 'sr25519') => {

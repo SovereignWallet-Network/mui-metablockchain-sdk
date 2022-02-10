@@ -425,7 +425,7 @@ async function getGenericVCDataByCId(cid, ssidUrl=false) {
   const vc = await getVCs(vcId, provider);
   const vc_property = utils.getVCS(vc[0].vc_property, vc[0].vc_type);
   const {data, hash} = await getGenericVCDataByCId(vc_property.cid, ssidUrl);
-  return {data, hash, vcId, issuers: vc.issuers};
+  return {data, hash, vcId, issuers: vc[0].issuers};
 }
 
 
@@ -437,32 +437,41 @@ async function getGenericVCDataByCId(cid, ssidUrl=false) {
  * @returns {Boolean} true if verified
  */
 async function verifyGenericVC(vcId, data, api=false) {
-  const provider = api || (await buildConnection('local'));
-  const vc = (await getVCs(vcId, provider))[0];
+  try {
+    const provider = api || (await buildConnection('local'));
+    const vc = (await getVCs(vcId, provider))[0];
 
-  // Verify Hash
-  const generateHash = utils.generateObjectHash(data);
-  if (vc.hash !== generateHash) {
-    throw new Error("Hash mismatch");
-  }
-  let history = await getVCHistoryByVCId(vcId, provider);
+    // Verify Hash
+    const generateHash = utils.generateObjectHash(data);
+    if (vc.hash !== generateHash) {
+      throw new Error("Hash mismatch");
+    }
+    let history = await getVCHistoryByVCId(vcId, provider);
 
-  // Get public keys
-  const publicKeys = await Promise.all(vc.issuers.map(issuer => resolveDIDToAccount(issuer, provider, history[1])));
+    // Get public keys
+    const publicKeys = await Promise.all(vc.issuers.map(issuer => resolveDIDToAccount(issuer, provider, history[1])));
 
-  // Verify signature
-  vc.signatures.forEach(sign => {
-    let isSignValid = false;
-    publicKeys.forEach(key => {
-      if(signatureVerify(hexToU8a(vc.hash), hexToU8a(sign), key.toString()).isValid) {
-        isSignValid = true;
+    // Verify signature
+    vc.signatures.forEach(sign => {
+      let isSignValid = false;
+      publicKeys.forEach(key => {
+        if(!key) {
+          return;
+        }
+        if(signatureVerify(hexToU8a(vc.hash), hexToU8a(sign), key.toString()).isValid) {
+          isSignValid = true;
+        }
+      });
+      if(!isSignValid) {
+        throw new Error("Signature verification failed");
       }
     });
-    if(!isSignValid) {
-      throw new Error("Signature verification failed");
-    }
-  });
-  return true;
+    return true;  
+  }
+  catch(err) {
+    console.log("VC Verification Failed: ", err);
+    return false;
+  }
 }
 
 module.exports = {

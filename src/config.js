@@ -8,6 +8,13 @@ const METABLOCKCHAIN_PROVIDER = {
   MAINNET: 'wss://mui.metablockchain.id',
 };
 
+const SSID_BASE_URL = {
+  local: 'https://ssid.metabit.exchange/dev',
+  dev: 'https://ssid.metabit.exchange/dev',
+  testnet: 'https://ssid.metabit.exchange/dev',
+  mainnet: 'https://ssid.metabit.exchange/prod',
+}
+
 const initKeyring = async (type = 'sr25519') => {
   await cryptoWaitReady();
   const keyring = await new Keyring({ type });
@@ -16,5 +23,6 @@ const initKeyring = async (type = 'sr25519') => {
 
 module.exports = {
   METABLOCKCHAIN_PROVIDER,
+  SSID_BASE_URL,
   initKeyring,
 };

@@ -10,6 +10,7 @@ const VCType = {
   TokenTransferVC: "TokenTransferVC",
   SlashMintTokens: "SlashMintTokens",
   GenericVC: "GenericVC",
+  DidVC: "DidVC",
 };
 Object.freeze(VCType);
 
@@ -53,7 +54,8 @@ const METABLOCKCHAIN_TYPES = {
       "SlashTokens",
       "MintTokens",
       "TokenTransferVC",
-      "GenericVC"
+      "GenericVC",
+      "DidVC"
     ]
   },
   "TokenVC": {
@@ -74,6 +76,10 @@ const METABLOCKCHAIN_TYPES = {
   },
   "GenericVC": {
     "cid": "[u8;64]"
+  },
+  "DidVC": {
+    "name": "[u8;64]",
+    "registration_number": "[u8;32]"
   },
   "VCHash": "Vec<u8>",
   "VCStatus": {
@@ -142,12 +148,16 @@ const ENCODE_TYPES = {
   "currency_code": "[u8;8]",
   "token_bytes": "[u8;16]",
   "CID": "[u8;64]",
+  "name": "[u8;64]",
+  "registration_number": "[u8;32]",
 };
 
 const TOKEN_NAME_BYTES = 16;
 const CURRENCY_CODE_BYTES = 8;
 const VC_PROPERTY_BYTES = 128;
 const CID_BYTES = 64;
+const REG_NUMB_BYTES = 32;
+const NAME_BYTES = 64;
 
 /**
  * @param  {Bytes} inputBytes u8[]
@@ -260,6 +270,9 @@ function tidy(s) {
     case VCType.GenericVC:
       vcs["vc_property"] = getVCS(vcs.vc_property, VCType.GenericVC);
       break;
+    case VCType.DidVC:
+      vcs["vc_property"] = getVCS(vcs.vc_property, VCType.DidVC);
+      break;
     default:
       throw new Error("Unknown Type");
   }
@@ -296,6 +309,8 @@ module.exports = {
   CURRENCY_CODE_BYTES,
   VC_PROPERTY_BYTES,
   CID_BYTES,
+  NAME_BYTES,
+  REG_NUMB_BYTES,
   VCType,
   bytesToHex,
   hexToBytes,

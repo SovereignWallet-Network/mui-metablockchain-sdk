@@ -886,6 +886,9 @@ This function is similar to sendTransaction except that it provides the user to 
 <dt><a href="#createGenericVC">createGenericVC(vcProperty)</a> ⇒ <code>String</code></dt>
 <dd><p>Encodes Generic VC and pads with appropriate bytes</p>
 </dd>
+<dt><a href="#createDidVC">createDidVC(vcProperty)</a> ⇒ <code>String</code></dt>
+<dd><p>Encodes Did VC and pads with appropriate bytes</p>
+</dd>
 <dt><a href="#generateVC">generateVC(vcProperty, owner, issuers, vcType, sigKeypair)</a> ⇒ <code>String</code></dt>
 <dd><p>Create VC</p>
 </dd>
@@ -993,6 +996,20 @@ Encodes Generic VC and pads with appropriate bytes
 | vcProperty | <code>Object</code> | 
 | vcProperty.cid | <code>String</code> | 
 
+<a name="createDidVC"></a>
+
+## createDidVC(vcProperty) ⇒ <code>String</code>
+Encodes Did VC and pads with appropriate bytes
+
+**Kind**: global function  
+**Returns**: <code>String</code> - Token VC Hex String  
+
+| Param | Type |
+| --- | --- |
+| vcProperty | <code>Object</code> | 
+| vcProperty.name | <code>String</code> | 
+| vcProperty.registrationNumber | <code>String</code> | 
+
 <a name="generateVC"></a>
 
 ## generateVC(vcProperty, owner, issuers, vcType, sigKeypair) ⇒ <code>String</code>
@@ -1006,7 +1023,7 @@ Create VC
 | vcProperty | <code>Object</code> |  |
 | owner | <code>String</code> | Did |
 | issuers | <code>Array.&lt;String&gt;</code> | Array of Did |
-| vcType | <code>String</code> | TokenVC, MintTokens, SlashTokens, TokenTransferVC, GenericVC |
+| vcType | <code>String</code> | TokenVC, MintTokens, SlashTokens, TokenTransferVC, GenericVC, DidVC |
 | sigKeypair | <code>KeyPair</code> | Owner Key Ring pair |
 
 <a name="approveVC"></a>

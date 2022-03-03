@@ -120,13 +120,28 @@ const { SSID_BASE_URL } = require('./config');
     return utils.encodeData(vcProperty, VCType.GenericVC)
       .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
   }
+
+   /** Encodes Did VC and pads with appropriate bytes
+  * @param  {Object} vcProperty
+  * @param  {String} vcProperty.name
+  * @param  {String} vcProperty.registrationNumber
+  * @returns {String} VC Property Hex String
+  */
+    function createDidVC({ name, registrationNumber }) {
+      let vcProperty = {
+        name: utils.encodeData(name.padEnd(utils.NAME_BYTES, '\0'), 'name'),
+        registration_number: utils.encodeData(registrationNumber.padEnd(utils.REG_NUMB_BYTES, '\0'), 'registration_number'),
+      };
+      return utils.encodeData(vcProperty, VCType.DidVC)
+        .padEnd((utils.VC_PROPERTY_BYTES * 2)+2, '0'); // *2 for hex and +2 bytes for 0x
+    }
  
  /**
   * Create VC
   * @param  {Object} vcProperty
   * @param  {String} owner Did
   * @param  {String[]} issuers Array of Did
-  * @param  {String} vcType TokenVC, MintTokens, SlashTokens, TokenTransferVC, GenericVC
+  * @param  {String} vcType TokenVC, MintTokens, SlashTokens, TokenTransferVC, GenericVC, DidVC
   * @param  {KeyPair} sigKeypair Owner Key Ring pair
   * @returns {String} VC Hex String
   */
@@ -148,6 +163,9 @@ const { SSID_BASE_URL } = require('./config');
       encodedVCProperty = createGenericVC(vcProperty);
       let genericVCData = await getGenericVCDataByCId(vcProperty.cid, ssidUrl);
       hash = genericVCData.hash;
+      break;
+    case VCType.DidVC:
+      encodedVCProperty = createDidVC(vcProperty);
       break;
     default:
       throw new Error("Unknown VC Type");

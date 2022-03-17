@@ -176,6 +176,16 @@ describe('Token Module works correctly', () => {
       assert.strictEqual(balance, 1.01);
     });
 
+    it('Token transfer with memo works correctly', async () => {
+      const transaction = await token.transferTokenWithMemo(TEST_SWN_DID, currencyCode, 0.01, 'Tested Memo', signKeypairOrgA, provider);
+      assert.doesNotReject(transaction);
+    });
+
+    it('Get Token Balance after transfer with memo works correctly', async () => {
+      let balance = await token.getTokenBalance(TEST_SWN_DID, currencyCode, provider);
+      assert.strictEqual(balance, 1.02);
+    });
+
     it('Token transfer all works correctly', async () => {
       const transaction = await token.transferAll(TEST_SWN_DID, currencyCode, signKeypairOrgA, provider);
       assert.doesNotReject(transaction);

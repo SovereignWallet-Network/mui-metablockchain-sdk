@@ -116,6 +116,63 @@ async function issueToken(
 }
 
 /**
+ * Transfer token with given token_id to the recipent_did
+ * @param {String} recipentDid
+ * @param {String} currencyCode
+ * @param {String} tokenAmount In Highest Form
+ * @param {String} memo
+ * @param {KeyPair} senderAccountKeyPair
+ * @param {APIPromise} api
+ * @returns {hexString}
+ */
+ async function transferTokenWithMemo(
+  recipentDid,
+  currencyCode,
+  tokenAmount,
+  memo,
+  senderAccountKeyPair,
+  api = false,
+) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+      // check if the recipent DID is valid
+      const receiverAccountID = await resolveDIDToAccount(recipentDid, provider);
+      if (!receiverAccountID) {
+        throw new Error('tokens.RecipentDIDNotRegistered');
+      }
+      const ccode = sanitiseCCode(currencyCode);
+      tokenAmount = await getFormattedTokenAmount(ccode, tokenAmount, provider);
+      const tx = provider.tx.tokens.transferTokenWithMemo(receiverAccountID, ccode, tokenAmount, memo);
+      let nonce = await provider.rpc.system.accountNextIndex(senderAccountKeyPair.address);
+      let signedTx = tx.sign(senderAccountKeyPair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(new Error(`${section}.${name}`));
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            // console.log(dispatchError.toString());
+            reject(new Error(dispatchError.toString()));
+          }
+        } else if (status.isFinalized) {
+          // console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex())
+        }
+      });
+    } catch (err) {
+      // console.log(err);
+      reject(err);
+    }
+  });
+}
+
+/**
  * Transfer all token with given vc_id to the recipent_did
  * @param {String} recipentDid
  * @param {String} currencyCode
@@ -576,6 +633,7 @@ async function getFormattedTokenAmount(currencyCode, tokenAmount, provider) {
 
 module.exports = {
   transferToken,
+  transferTokenWithMemo,
   transferAll,
   issueToken,
   slashToken,

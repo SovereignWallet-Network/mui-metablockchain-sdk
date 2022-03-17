@@ -619,6 +619,22 @@ Transfer token with given token_id to the recipent_did
 | senderAccountKeyPair | <code>KeyPair</code> |  |  |
 | api | <code>APIPromise</code> | <code>false</code> |  |
 
+<a name="transferTokenWithMemo"></a>
+
+## transferTokenWithMemo(recipentDid, currencyCode, tokenAmount, memo, senderAccountKeyPair, api) ⇒ <code>hexString</code>
+Transfer token with given token_id to the recipent_did with an additional memo
+
+**Kind**: global function  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| recipentDid | <code>String</code> |  |  |
+| currencyCode | <code>String</code> |  |  |
+| tokenAmount | <code>String</code> |  | In Highest Form |
+| memo | <code>String</code> |  |  |
+| senderAccountKeyPair | <code>KeyPair</code> |  |  |
+| api | <code>APIPromise</code> | <code>false</code> |  |
+
 <a name="transferAll"></a>
 
 ## transferAll(recipentDid, currencyCode, senderAccountKeyPair, api) ⇒ <code>hexString</code>

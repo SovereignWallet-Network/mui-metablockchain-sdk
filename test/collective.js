@@ -2,11 +2,12 @@ const assert = require('assert');
 
 const collective = require('../src/collective');
 const did = require('../src/did');
+const utils = require('../src/utils');
 const tx = require('../src/transaction');
 const { initKeyring } = require('../src/config');
 const { buildConnection } = require('../src/connection');
 const constants = require('./test_constants');
-const { removeDid } = require('./helper/helper');
+const { storeDIDOnChain, removeDid } = require('./helper/helper');
 
 describe('Collective works correctly', () => {
   let provider = null;
@@ -34,18 +35,20 @@ describe('Collective works correctly', () => {
       const didObjRocket = {
         public_key: sigKeypairBob.publicKey, // this is the public key linked to the did
         identity: TEST_ROCKET_DID, // this is the actual did
-        metadata: 'Metadata',
+        metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
       };
       const didObjDave = {
         public_key: sigKeypairDave.publicKey, // this is the public key linked to the did
         identity: TEST_DAVE_DID, // this is the actual did
-        metadata: 'Metadata',
+        metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
       };
       if (constants.providerNetwork == 'local') {
         try {
-          await did.storeDIDOnChain(didObjDave, sudoPair, provider);
-          await did.storeDIDOnChain(didObjRocket, sudoPair, provider);
-        } catch (err) {}
+          await storeDIDOnChain(didObjDave, sudoPair, provider, null);
+          await storeDIDOnChain(didObjRocket, sudoPair, provider, null);
+        } catch (err) {
+          console.log(err);
+        }
         let nonce = await provider.rpc.system.accountNextIndex(sudoPair.address);
         await tx.sendTransaction(sudoPair, TEST_ROCKET_DID, '5000000', provider, nonce);
         nonce = await provider.rpc.system.accountNextIndex(sudoPair.address);

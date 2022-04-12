@@ -17,9 +17,10 @@ const METABLOCKCHAIN_TYPES = {
   "PeerId": "OpaquePeerId",
   "identifier": "[u8;32]",
   "public_key": "[u8;32]",
-  "metadata": "Vec<u8>",
+  "metadata": "[u8;32]",
   "DidStruct": {
     "identifier": "identifier",
+    "issuer": "identifier",
     "public_key": "public_key",
     "metadata": "metadata"
   },
@@ -65,12 +66,12 @@ const METABLOCKCHAIN_TYPES = {
   "SlashMintTokens": {
     "vc_id": "VCid",
     "currency_code": "CurrencyCode",
-    "amount": "u128"
+    "amount": "TokenBalance"
   },
   "TokenTransferVC": {
     "vc_id": "VCid",
     "currency_code": "CurrencyCode",
-    "amount": "u128"
+    "amount": "TokenBalance"
   },
   "GenericVC": {
     "cid": "[u8;64]"
@@ -86,16 +87,10 @@ const METABLOCKCHAIN_TYPES = {
   "Hash": "H256",
   "Signature": "H512",
   "TokenDetails": {
-    "token_name": "Vec<u8>",
-    "currency_code": "Vec<u8>",
+    "token_name": "Bytes",
+    "currency_code": "Bytes",
     "decimal": "u8",
     "block_number": "BlockNumber"
-  },
-  "StorageVersion": {
-    "_enum": [
-      "V1_0_0",
-      "V2_0_0"
-    ]
   },
   "TokenBalance": "u128",
   "TokenAccountData": {
@@ -114,7 +109,29 @@ const METABLOCKCHAIN_TYPES = {
     "nays": "Vec<Did>",
     "end": "BlockNumber"
   },
+  "MetaData": "[u8;32]",
   "CurrencyCode": "[u8;8]",
+  "DidType": {
+    "_enum": [
+      "Add",
+      "Update",
+      "Remove",
+      "Rotate"
+    ]
+  },
+  "DidProperty": {
+    "metadata": "Option<metadata>",
+    "prev_public_key": "Option<public_key>",
+    "public_key": "public_key"
+  },
+  "DidVC": {
+    "hash": "Hash",
+    "issuer": "Did",
+    "owner":"Did" ,
+    "property": "DidProperty",
+    "signature": "Signature" ,
+    "vc_type": "DidType"
+  },
   "StorageVersion": {
     "_enum": [
       "V1_0_0",
@@ -127,8 +144,10 @@ const METABLOCKCHAIN_TYPES = {
       "V1_0_0",
       "V2_0_0"
     ]
-  }
+  },
+  "Keys": "SessionKeys2"
 }
+
 
 // Types for generating HEX
 const ENCODE_TYPES = {
@@ -137,6 +156,12 @@ const ENCODE_TYPES = {
     "vc_property": "[u8;128]",
     "owner": "Did",
     "issuers": "Vec<Did>"
+  },
+  "DID_VC_HEX": {
+    "vc_type": "DidType",
+    "vc_property": "DidProperty",
+    "owner": "Did",
+    "issuer": "Did"
   },
   "decimal": "u8",
   "currency_code": "[u8;8]",
@@ -148,6 +173,7 @@ const TOKEN_NAME_BYTES = 16;
 const CURRENCY_CODE_BYTES = 8;
 const VC_PROPERTY_BYTES = 128;
 const CID_BYTES = 64;
+const METADATA_BYTES = 32;
 
 /**
  * @param  {Bytes} inputBytes u8[]
@@ -296,6 +322,7 @@ module.exports = {
   CURRENCY_CODE_BYTES,
   VC_PROPERTY_BYTES,
   CID_BYTES,
+  METADATA_BYTES,
   VCType,
   bytesToHex,
   hexToBytes,

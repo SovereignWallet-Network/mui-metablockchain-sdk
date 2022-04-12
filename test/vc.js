@@ -6,7 +6,7 @@ const { initKeyring, SSID_BASE_URL } = require('../src/config');
 const { buildConnection } = require('../src/connection.js');
 const constants = require('./test_constants');
 const utils = require('../src/utils');
-const { removeDid, storeVC, sudoStoreVC } = require('./helper/helper.js');
+const { removeDid, storeVC, sudoStoreVC, storeDIDOnChain } = require('./helper/helper.js');
 
 describe('VC works correctly', () => {
   let sigKeypair = null;
@@ -188,44 +188,44 @@ describe('VC works correctly', () => {
         const didObj = {
           public_key: sigKeypairBob.publicKey, // this is the public key linked to the did
           identity: TEST_DID, // this is the actual did
-          metadata: 'Metadata',
+          metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
         };
         try {
-          await did.storeDIDOnChain(didObj, sigKeypair, provider);
+          await storeDIDOnChain(didObj, sigKeypair, provider);
         } catch (err) { }
         try {
           const didObjDave = {
             public_key: signKeypairDave.publicKey, // this is the public key linked to the did
             identity: TEST_DAVE_DID, // this is the actual did
-            metadata: 'Metadata',
+            metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
           };
-          await did.storeDIDOnChain(didObjDave, sigKeypair, provider);
+          await storeDIDOnChain(didObjDave, sigKeypair, provider);
         } catch (err) { }
         try {
           const didObjEve = {
             public_key: signKeypairEve.publicKey, // this is the public key linked to the did
             identity: EVE_DID, // this is the actual did
-            metadata: 'Metadata',
+            metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
           };
-          await did.storeDIDOnChain(didObjEve, sigKeypair, provider);
+          await storeDIDOnChain(didObjEve, sigKeypair, provider);
         } catch (err) { }
 
         try {
           const didObjDave = {
             public_key: signKeypairDave.publicKey, // this is the public key linked to the did
             identity: TEST_DAVE_DID, // this is the actual did
-            metadata: 'Metadata',
+            metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
           };
-          await did.storeDIDOnChain(didObjDave, sigKeypair, provider);
+          await storeDIDOnChain(didObjDave, sigKeypair, provider);
         } catch (err) { }
 
         const didObjEve = {
           public_key: signKeypairEve.publicKey, // this is the public key linked to the did
           identity: EVE_DID, // this is the actual did
-          metadata: 'Metadata',
+          metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
         };
         try {
-          await did.storeDIDOnChain(didObjEve, sigKeypair, provider);
+          await storeDIDOnChain(didObjEve, sigKeypair, provider);
         } catch (err) { }
 
         const nonce = await provider.rpc.system.accountNextIndex(sigKeypair.address);
@@ -267,7 +267,7 @@ describe('VC works correctly', () => {
     //     metadata: 'Metadata',
     //   };
     //   try {
-    //     await did.storeDIDOnChain(didObj, sigKeypair, provider);
+    //     await storeDIDOnChain(didObj, sigKeypair, provider);
     //   } catch(err) {}
     //   const transaction = await vc.addSignature(vcId, eveSign, signKeypairEve, provider);
     //   assert.doesNotReject(transaction);

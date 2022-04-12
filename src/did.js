@@ -1,11 +1,20 @@
-const { mnemonicGenerate, mnemonicValidate } = require('@polkadot/util-crypto');
+const { mnemonicGenerate, mnemonicValidate, blake2AsHex } = require('@polkadot/util-crypto');
 const { initKeyring } = require('./config.js');
+const utils = require('./utils.js');
 const { buildConnection } = require('./connection.js');
-
 const IDENTIFIER_PREFIX = 'did:ssid:';
 const IDENTIFIER_MAX_LENGTH = 20;
 const IDENTIFIER_MIN_LENGTH = 3;
 const DID_HEX_LEN = 64;
+
+
+const DidActionType = {
+  Add: "Add",
+  Update: "Update",
+  Remove: "Remove",
+  Rotate: "Rotate",
+};
+Object.freeze(DidActionType);
 
 
 /** Generate Mnemonic
@@ -55,9 +64,58 @@ const generateDID = async (mnemonic, identifier, metadata = '') => {
   return {
     public_key: pubKey, // this is the public key linked to the did
     identity: IDENTIFIER_PREFIX + identifier, // this is the actual did
-    metadata,
+    metadata: utils.encodeData(metadata.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
   };
 };
+
+function encodeDidVCProperty({metadata='', prevPubKey=null, pubKey}) {
+  let didVCProperty = {
+    metadata: utils.encodeData(metadata.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
+    prev_public_key: prevPubKey,
+    public_key: pubKey,
+  }
+  return utils.encodeData(didVCProperty, 'DidProperty')
+}
+
+/**
+ * Encode VC object
+ * @param {String} mnemonic
+ * @param {String} identifier
+ * @param {String} metadata
+ * @returns {Object} Object containing did structure
+ */
+function encodeDidVC(owner, issuer, didProperty, didActionType, sigKeypair) {
+  let encodedDidProperty;
+  switch (didActionType) {
+    case DidActionType.Add:
+    case DidActionType.Update:
+    case DidActionType.Remove:
+    case DidActionType.Rotate:
+      encodedDidProperty = encodeDidVCProperty(didProperty);
+      break;
+    default:
+      throw new Error("Unknown Did Action VC Type");
+  }
+  owner = sanitiseDid(owner);
+  issuer = sanitiseDid(issuer);
+  let encodedData = utils.encodeData({
+    vc_type: didActionType,
+    vc_property: encodedDidProperty,
+    owner,
+    issuer,
+  }, "DID_VC_HEX");
+  let hash = blake2AsHex(encodedData);
+  const sign = utils.bytesToHex(sigKeypair.sign(hash));
+  let didVC = {
+    hash,
+    issuer,
+    owner,
+    property: encodedDidProperty,
+    signature: sign,
+    vc_type: didActionType
+  }
+  return utils.encodeData(didVC, 'DidVC');
+}
 
 /**
  * Store the generated DID object in blockchain
@@ -66,12 +124,12 @@ const generateDID = async (mnemonic, identifier, metadata = '') => {
  * @param {ApiPromise} api
  * @returns {String} txnId Txnid for storage operation.
  */
-function storeDIDOnChain(DID, signingKeypair, api = false) {
+function storeDIDOnChain(DID, signingKeypair, api = false, vc_hex=null) {
   return new Promise(async (resolve, reject) => {
     try {
       const provider = api || (await buildConnection('local'));
 
-      const tx = provider.tx.did.add(DID.public_key, sanitiseDid(DID.identity), DID.metadata);
+      const tx = provider.tx.did.add(DID.public_key, sanitiseDid(DID.identity), DID.metadata, vc_hex);
 
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
@@ -174,14 +232,14 @@ async function resolveAccountIdToDid(accountId, api = false) {
  * @param {KeyringObj} signingKeypair // of a validator account
  * @param {ApiPromise} api
  */
-async function updateDidKey(identifier, newKey, signingKeypair, api) {
+async function updateDidKey(identifier, newKey, signingKeypair, api, vc_hex=null) {
   return new Promise(async (resolve, reject) => {
     try {
       const provider = api || (await buildConnection('local'));
 
       const did_hex = sanitiseDid(identifier);
       // call the rotateKey extrinsinc
-      const tx = provider.tx.did.rotateKey(did_hex, newKey);
+      const tx = provider.tx.did.rotateKey(did_hex, newKey, vc_hex);
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
       await signedTx.send(function ({ status, dispatchError }){
@@ -275,12 +333,13 @@ async function getDidKeyHistory(identifier, api = false) {
  * @param {KeyringObj} signingKeypair of a validator account
  * @param {ApiPromise} api
  */
-async function updateMetadata(identifier, metadata, signingKeypair, api = false) {
+async function updateMetadata(identifier, metadata, signingKeypair, api = false, vc_hex=null) {
   return new Promise(async (resolve, reject) => {
     try {
       const provider = api || (await buildConnection('local'));
       const did_hex = sanitiseDid(identifier);
-      const tx = provider.tx.did.updateMetadata(did_hex, metadata);
+      metadata = utils.encodeData(metadata.padEnd(utils.METADATA_BYTES, '\0'), 'metadata')
+      const tx = provider.tx.did.updateMetadata(did_hex, metadata, vc_hex);
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
       await signedTx.send(function ({ status, dispatchError }){
@@ -310,6 +369,7 @@ async function updateMetadata(identifier, metadata, signingKeypair, api = false)
 }
 
 module.exports = {
+  DidActionType,
   generateMnemonic,
   generateDID,
   storeDIDOnChain,
@@ -321,4 +381,5 @@ module.exports = {
   isDidValidator,
   updateMetadata,
   sanitiseDid,
+  encodeDidVC,
 };

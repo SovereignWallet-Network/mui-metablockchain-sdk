@@ -129,7 +129,12 @@ function storeDIDOnChain(DID, signingKeypair, api = false, vc_hex=null) {
     try {
       const provider = api || (await buildConnection('local'));
 
-      const tx = provider.tx.did.add(DID.public_key, sanitiseDid(DID.identity), DID.metadata, vc_hex);
+      let tx;
+      if(vc_hex) {
+        tx = provider.tx.did.add(DID.public_key, sanitiseDid(DID.identity), DID.metadata, vc_hex);
+      } else {
+        tx = provider.tx.sudo.sudo(provider.tx.did.add(DID.public_key, sanitiseDid(DID.identity), DID.metadata, null));
+      }
 
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
@@ -239,7 +244,12 @@ async function updateDidKey(identifier, newKey, signingKeypair, api, vc_hex=null
 
       const did_hex = sanitiseDid(identifier);
       // call the rotateKey extrinsinc
-      const tx = provider.tx.did.rotateKey(did_hex, newKey, vc_hex);
+      let tx;
+      if(vc_hex) {
+        tx = provider.tx.did.rotateKey(did_hex, newKey, vc_hex);
+      } else {
+        tx = provider.tx.sudo.sudo(provider.tx.did.rotateKey(did_hex, newKey, null));
+      }
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
       await signedTx.send(function ({ status, dispatchError }){
@@ -339,7 +349,12 @@ async function updateMetadata(identifier, metadata, signingKeypair, api = false,
       const provider = api || (await buildConnection('local'));
       const did_hex = sanitiseDid(identifier);
       metadata = utils.encodeData(metadata.padEnd(utils.METADATA_BYTES, '\0'), 'metadata')
-      const tx = provider.tx.did.updateMetadata(did_hex, metadata, vc_hex);
+      let tx;
+      if(vc_hex) {
+        tx = provider.tx.did.updateMetadata(did_hex, metadata, vc_hex);
+      } else {
+        tx = provider.tx.sudo.sudo(provider.tx.did.updateMetadata(did_hex, metadata, null));
+      }
       let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
       let signedTx = tx.sign(signingKeypair, {nonce});
       await signedTx.send(function ({ status, dispatchError }){

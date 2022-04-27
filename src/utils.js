@@ -167,6 +167,7 @@ const ENCODE_TYPES = {
   "currency_code": "[u8;8]",
   "token_bytes": "[u8;16]",
   "CID": "[u8;64]",
+  "DID_TEST": "Bytes",
 };
 
 const TOKEN_NAME_BYTES = 16;

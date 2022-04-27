@@ -2,6 +2,32 @@ const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { METABLOCKCHAIN_PROVIDER } = require('./config.js');
 const { METABLOCKCHAIN_TYPES } = require('./utils.js');
 
+const RPC_TYPES = {
+  metacash: { init: {
+    description: 'Init Metacash',
+    params: [
+      {
+        name: 'did',
+        type: 'Bytes',
+      },
+      {
+        name: 'message',
+        type: 'Bytes',
+      },
+      {
+        name: 'signature',
+        type: 'Bytes',
+      },
+      {
+        name: 'at',
+        type: 'Hash',
+        isOptional: true
+      }
+  ],
+    type: 'String',
+  }}
+}
+
 // assign network
 const NETWORK_PROVIDER = {
   local: METABLOCKCHAIN_PROVIDER.LOCAL,
@@ -20,6 +46,7 @@ function buildNewConnection(network = 'local') {
   return ApiPromise.create({
     provider,
     types: METABLOCKCHAIN_TYPES,
+    rpc: RPC_TYPES,
   });
 }
 

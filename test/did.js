@@ -5,10 +5,11 @@ const { buildConnection } = require('../src/connection.js');
 const constants = require('./test_constants');
 const { hexToString } = require('../src/utils');
 const {
-  mnemonicValidate,
+  mnemonicValidate, signatureVerify,
 } = require('@polkadot/util-crypto');
 const { removeDid } = require('./helper/helper.js');
 const utils = require('../src/utils');
+const { u8aToBuffer, u8aToU8a, hexToU8a } = require('@polkadot/util');
 
 describe('DID Module works correctly', () => {
   const TEST_MNEMONIC =
@@ -32,6 +33,17 @@ describe('DID Module works correctly', () => {
     provider = await buildConnection(constants.providerNetwork);
     sigKeypairWithBal = await keyring.addFromUri(constants.mnemonicWithBalance);
   });
+
+  it.only('should init metacash', async () => {
+    const didIdentifier = utils.encodeData("did:ssid:swn", "DID_TEST");
+    const message = utils.encodeData("Signed by swn".padEnd(64, '\0'), "DID_TEST");
+    const signature = utils.bytesToHex(sigKeypairWithBal.sign(message));
+    let key = sigKeypairWithBal.publicKey;
+    assert.strictEqual(signatureVerify(hexToU8a(message), hexToU8a(signature), key).isValid, true);
+    let store_key = utils.encodeData("local_store".padEnd(32, '\0'), "DID_TEST");
+    let result = await provider.rpc.metacash.init(didIdentifier, message, signature, store_key);
+    assert.strictEqual(result.isTrue, true);
+  })
 
   it('DID is created in correct format', async () => {
     const didObj = await did.generateDID(TEST_MNEMONIC, TEST_DID, TEST_METADATA);
@@ -313,9 +325,9 @@ describe('DID Module works correctly', () => {
 
   after(async () => {
     // Delete created DID (did:ssid:rocket)
-    if (constants.providerNetwork == 'local') {
-      await removeDid('did:ssid:rocket', sigKeypairWithBal, provider);
-      await removeDid('did:ssid:charlie', sigKeypairWithBal, provider);
-    }
+    // if (constants.providerNetwork == 'local') {
+    //   await removeDid('did:ssid:rocket', sigKeypairWithBal, provider);
+    //   await removeDid('did:ssid:charlie', sigKeypairWithBal, provider);
+    // }
   })
 });

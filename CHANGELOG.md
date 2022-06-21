@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.1.3 June 21, 2022
+
+Upgrade priority: Low.
+
+Changes:
+
+- Added new demo connection config
+- Added memo support in tokens module
+- Minor bug fixes 
+
 ## 2.1.2 Feb 08, 2022
 
 Upgrade priority: High.

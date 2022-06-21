@@ -619,6 +619,22 @@ Transfer token with given token_id to the recipent_did
 | senderAccountKeyPair | <code>KeyPair</code> |  |  |
 | api | <code>APIPromise</code> | <code>false</code> |  |
 
+<a name="transferTokenWithMemo"></a>
+
+## transferTokenWithMemo(recipentDid, currencyCode, tokenAmount, memo, senderAccountKeyPair, api) ⇒ <code>hexString</code>
+Transfer token with given token_id to the recipent_did with an additional memo
+
+**Kind**: global function  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| recipentDid | <code>String</code> |  |  |
+| currencyCode | <code>String</code> |  |  |
+| tokenAmount | <code>String</code> |  | In Highest Form |
+| memo | <code>String</code> |  |  |
+| senderAccountKeyPair | <code>KeyPair</code> |  |  |
+| api | <code>APIPromise</code> | <code>false</code> |  |
+
 <a name="transferAll"></a>
 
 ## transferAll(recipentDid, currencyCode, senderAccountKeyPair, api) ⇒ <code>hexString</code>
@@ -883,10 +899,13 @@ This function is similar to sendTransaction except that it provides the user to 
 <dt><a href="#createTokenTransferVC">createTokenTransferVC(vcProperty)</a> ⇒ <code>String</code></dt>
 <dd><p>Encodes Token VC and pads with appropriate bytes</p>
 </dd>
+<dt><a href="#createGenericVC">createGenericVC(vcProperty)</a> ⇒ <code>String</code></dt>
+<dd><p>Encodes Generic VC and pads with appropriate bytes</p>
+</dd>
 <dt><a href="#generateVC">generateVC(vcProperty, owner, issuers, vcType, sigKeypair)</a> ⇒ <code>String</code></dt>
 <dd><p>Create VC</p>
 </dd>
-<dt><a href="#approveVC">approveVC(vcID, sigKeypair)</a> ⇒ <code>String</code></dt>
+<dt><a href="#approveVC">approveVC(vcID, signingKeyPair, api)</a> ⇒ <code>String</code></dt>
 <dd><p>Approve VC</p>
 </dd>
 <dt><a href="#storeVC">storeVC(vcHex, senderAccountKeyPair, api)</a> ⇒ <code>hexString</code></dt>
@@ -905,10 +924,19 @@ This function is similar to sendTransaction except that it provides the user to 
 <dd><p>Get DID by VC Id</p>
 </dd>
 <dt><a href="#getVCHistoryByVCId">getVCHistoryByVCId(vcId, api)</a> ⇒ <code>String</code></dt>
-<dd><p>Get DID by VC Id</p>
+<dd><p>Get VC history by VC Id</p>
 </dd>
 <dt><a href="#getVCApprovers">getVCApprovers(vcId, api)</a> ⇒ <code>Array.&lt;Did&gt;</code></dt>
 <dd><p>Get approved issuers of the VC</p>
+</dd>
+<dt><a href="#getGenericVCDataByCId">getGenericVCDataByCId(vcId, api)</a> ⇒ <code>JSON</code></dt>
+<dd><p>Get Generic vc data</p>
+</dd>
+<dt><a href="#getGenericVCData">getGenericVCData(vcId, api)</a> ⇒ <code>JSON</code></dt>
+<dd><p>Get Generic vc data</p>
+</dd>
+<dt><a href="#verifyGenericVC">verifyGenericVC(vcId, data, api)</a> ⇒ <code>Boolean</code></dt>
+<dd><p>Verify Generic Vc data</p>
 </dd>
 <dt><a href="#createVC">createVC(properties_json, schema_hash)</a> ⇒ <code>JSON</code></dt>
 <dd><p>The function returns the VC in the expected format, the verifier and
@@ -968,6 +996,19 @@ Encodes Token VC and pads with appropriate bytes
 | vcProperty.currencyCode | <code>String</code> |  |
 | vcProperty.amount | <code>String</code> | In Highest Form |
 
+<a name="createGenericVC"></a>
+
+## createGenericVC(vcProperty) ⇒ <code>String</code>
+Encodes Generic VC and pads with appropriate bytes
+
+**Kind**: global function  
+**Returns**: <code>String</code> - Token VC Hex String  
+
+| Param | Type |
+| --- | --- |
+| vcProperty | <code>Object</code> | 
+| vcProperty.cid | <code>String</code> | 
+
 <a name="generateVC"></a>
 
 ## generateVC(vcProperty, owner, issuers, vcType, sigKeypair) ⇒ <code>String</code>
@@ -981,7 +1022,7 @@ Create VC
 | vcProperty | <code>Object</code> |  |
 | owner | <code>String</code> | Did |
 | issuers | <code>Array.&lt;String&gt;</code> | Array of Did |
-| vcType | <code>String</code> | TokenVC, MintTokens, SlashTokens, TokenTransferVC |
+| vcType | <code>String</code> | TokenVC, MintTokens, SlashTokens, TokenTransferVC, GenericVC |
 | sigKeypair | <code>KeyPair</code> | Owner Key Ring pair |
 
 <a name="approveVC"></a>
@@ -996,7 +1037,7 @@ Approve VC
 | --- | --- | --- |
 | vcID | <code>Object</code> | vc_id of VC to be approved |
 | signingKeyPair | <code>KeyPair</code> | Issuer Key Ring pair |
-| api | <code>APIPromise</code> | <code>false</code> | 
+| api | <code>APIPromise</code> |  |
 
 <a name="storeVC"></a>
 
@@ -1090,6 +1131,46 @@ Get approved issuers of the VC
 | vcId | <code>String</code> |  | (hex/base64 version works) |
 | api | <code>ApiPromise</code> | <code>false</code> |  |
 
+<a name="getGenericVCDataByCId"></a>
+
+## getGenericVCDataByCId(vcId, api) ⇒ <code>JSON</code>
+Get Generic vc data
+
+**Kind**: global function  
+**Returns**: <code>JSON</code> - Generic VC data  
+
+| Param | Type |
+| --- | --- |
+| vcId | <code>String</code> | 
+| api | <code>ApiPromise</code> | 
+
+<a name="getGenericVCData"></a>
+
+## getGenericVCData(vcId, api) ⇒ <code>JSON</code>
+Get Generic vc data
+
+**Kind**: global function  
+**Returns**: <code>JSON</code> - Generic VC data  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| vcId | <code>String</code> |  | 
+| api | <code>ApiPromise</code> | <code>false</code> | 
+
+<a name="verifyGenericVC"></a>
+
+## verifyGenericVC(vcId, data, api) ⇒ <code>Boolean</code>
+Verify Generic Vc data
+
+**Kind**: global function  
+**Returns**: <code>Boolean</code> - true if verified  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| vcId | <code>String</code> |  | 
+| data | <code>Object</code> |  | 
+| api | <code>ApiPromise</code> | <code>false</code> | 
+
 <a name="createVC"></a>
 
 ## createVC(properties_json, schema_hash) ⇒ <code>JSON</code>
@@ -1165,6 +1246,12 @@ Verify if the signature/verifier DID is valid and matches the given data in vc_j
 </dd>
 <dt><a href="#decodeVC">decodeVC(hexValue, typeKey)</a> ⇒ <code>Object</code> | <code>String</code></dt>
 <dd><p>function that decodes hex of createVC where type is TokenVC to it&#39;s corresponding object/value</p>
+</dd>
+<dt><a href="#sortObjectByKeys">sortObjectByKeys(unorderedObj)</a> ⇒ <code>Object</code></dt>
+<dd><p>Sort object by keys</p>
+</dd>
+<dt><a href="#generateObjectHash">generateObjectHash(unordered)</a> ⇒ <code>Object</code></dt>
+<dd><p>generate blake hash of js object</p>
 </dd>
 </dl>
 
@@ -1297,6 +1384,31 @@ function that decodes hex of createVC where type is TokenVC to it's correspondin
 | --- | --- | --- |
 | hexValue | <code>String</code> | Hex String to be decoded |
 | typeKey | <code>String</code> | Key from METABLOCKCHAIN_TYPES which represents type of data |
+
+<a name="sortObjectByKeys"></a>
+
+## sortObjectByKeys(unorderedObj) ⇒ <code>Object</code>
+Sort object by keys
+
+**Kind**: global function  
+**Returns**: <code>Object</code> - ordered object by key  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| unorderedObj | <code>Object</code> | unordered object |
+
+<a name="generateObjectHash"></a>
+
+## generateObjectHash(unordered) ⇒ <code>Object</code>
+generate blake hash of js object
+
+**Kind**: global function  
+**Returns**: <code>Object</code> - ordered object by key  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| unordered | <code>Object</code> | unordered object |
+
 
 
 <a name="schema"></a>

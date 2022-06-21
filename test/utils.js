@@ -2,6 +2,7 @@ const assert = require('assert');
 const utils = require('../src/utils.js');
 
 describe('Utils Module works correctly', () => {
+
   it('Hex to string works as expected', async () => {
     assert.equal(utils.hexToString('0x6469643a737369643a6d6574616d756900000000000000000000000000000000'), 'did:ssid:metamui');
   });
@@ -13,5 +14,17 @@ describe('Utils Module works correctly', () => {
     let actualObject = utils.decodeHex(actualHex, 'VC');
     assert.strictEqual(actualHex, expectedHex);
     assert.deepEqual(actualObject, expectedObject);
+  })
+
+  it('should generate json hash correctly', () => {
+    let data ={
+      "another_data":"testing another data",
+      "misc_data":"hello world",
+      "purpose":"test",
+      "type":"generic_vc"
+    };
+    let expectedHash = '0x627fbcda15f480ef94dc93de02c59ac914cbe7c210e447bf4b2a7bfe6f96b4de';
+    let actualHash = utils.generateObjectHash(data);
+    assert.strictEqual(actualHash, expectedHash);
   })
 });

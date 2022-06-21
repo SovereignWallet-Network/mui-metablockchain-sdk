@@ -5,8 +5,16 @@ const METABLOCKCHAIN_PROVIDER = {
   LOCAL: 'ws://127.0.0.1:9944',
   DEV: 'wss://n3testnet.metabit.exchange',
   TESTNET: 'wss://n3testnet.metabit.exchange',
-  MAINNET: 'wss://mui.metablockchain.id',
+  DEMO: 'wss://demo.metamui.money',
+  MAINNET: ['wss://n2.metamui.id', 'wss://n1.metamui.id', 'wss://n3.metamui.id', 'wss://n4.metamui.id'],
 };
+
+const SSID_BASE_URL = {
+  local: 'https://ssid.metabit.exchange/dev',
+  dev: 'https://ssid.metabit.exchange/dev',
+  testnet: 'https://ssid.metabit.exchange/dev',
+  mainnet: 'https://ssid.metabit.exchange/prod',
+}
 
 const initKeyring = async (type = 'sr25519') => {
   await cryptoWaitReady();
@@ -16,5 +24,6 @@ const initKeyring = async (type = 'sr25519') => {
 
 module.exports = {
   METABLOCKCHAIN_PROVIDER,
+  SSID_BASE_URL,
   initKeyring,
 };

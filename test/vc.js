@@ -305,6 +305,24 @@ describe('VC works correctly', () => {
       assert.strictEqual(verifyData, true);
     });
 
+    it('Store Did VC works correctly', async () => {
+      let didVC = {
+        name: 'ferdie',
+        registrationNumber: '12345',
+      };
+      let owner = TEST_DID;
+      let issuers = [
+        TEST_SWN_DID,
+        EVE_DID,
+      ];
+      const vcHex = await vc.generateVC(didVC, owner, issuers, utils.VCType.DidVC, sigKeypair, provider);
+      const transaction = await vc.storeVC(vcHex, sigKeypair, provider);
+      const vcsByDid = await vc.getVCIdsByDID(TEST_DID, provider);
+      vcId = vcsByDid[vcsByDid.length-1];
+      await vc.approveVC(vcId, signKeypairEve, provider);
+      assert.doesNotReject(transaction);
+    });
+
     it('Auto Active VC Status on sign works correctly', async () => {
       let owner = TEST_DID;
       let issuers = [

@@ -210,6 +210,11 @@ describe('Token Module works correctly', () => {
       let tokensSupply = await token.getTokenTotalSupply(currencyCode, provider);
       assert.strictEqual(tokensSupply, 10);
     });
+
+    it('Remove Token works correctly', async () => {
+      let transaction = await token.removeToken(currencyCode, vcId, true, sigKeypairRoot, null, provider);
+      assert.doesNotReject(transaction);
+    });
   }
 
 

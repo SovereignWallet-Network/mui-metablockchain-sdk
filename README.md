@@ -587,6 +587,12 @@ Can be called only token owner</p>
 <dd><p>Checks if the given currency_code is in hex format or not &amp; converts it into valid hex format.</p>
 <p> Note: This util function is needed since dependant module wont convert the utf did to hex anymore</p>
 </dd>
+<dt><a href="#getFormattedTokenAmount">getFormattedTokenAmount(currency_code, tokenAmount, provider)</a> ⇒ <code>Number</code></dt>
+<dd><p>Formats the given amount into lowest form based on the decimals supported by given token.</p>
+</dd>
+<dt><a href="#removeToken">removeToken(currencyCode, vcId, clearAccounts, signingKeypair, identity)</a> ⇒ <code>String</code></dt>
+<dd><p>Remove token</p>
+</dd>
 </dl>
 
 <a name="issueToken"></a>
@@ -825,6 +831,36 @@ Checks if the given currency_code is in hex format or not & converts it into val
 | --- | --- |
 | currency_code | <code>String</code> | 
 
+
+<a name="getFormattedTokenAmount"></a>
+
+## getFormattedTokenAmount(currency_code, tokenAmount, provider) ⇒ <code>Number</code>
+Formats the given amount into lowest form based on the decimals supported by given token.
+
+**Kind**: global function  
+**Returns**: <code>Number</code> - tokenAmount in lowest form else error  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| currency_code | <code>String</code> | in the sanitised form |
+| tokenAmount | <code>String</code> | in the highest form |
+| provider | <code>APIPromise</code> |  |
+
+<a name="removeToken"></a>
+
+## removeToken(currencyCode, vcId, clearAccounts, signingKeypair, identity) ⇒ <code>String</code>
+Remove token
+
+**Kind**: global function  
+**Returns**: <code>String</code> - Hash  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| currencyCode | <code>String</code> |  | 
+| vcId | <code>String</code> |  | 
+| clearAccounts | <code>Bool</code> |  | 
+| signingKeypair | <code>KeyPair</code> |  | 
+| identity | <code>String</code> | <code></code> | 
 
 
 

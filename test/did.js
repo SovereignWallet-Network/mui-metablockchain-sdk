@@ -8,10 +8,13 @@ const {
   mnemonicValidate,
 } = require('@polkadot/util-crypto');
 const { removeDid } = require('./helper/helper.js');
+const utils = require('../src/utils');
 
 describe('DID Module works correctly', () => {
   const TEST_MNEMONIC =
     'trade tennis uncle hour cave wait stadium dove derive resemble attract relax';
+  const DaveSeed = "link hire solve hill evil egg civil rice inform trouble poverty original";
+  const CharlieSeed = "biology tag spread donkey phrase deputy pelican aerobic film grab aunt shine";
   const TEST_DID = 'rocket';
   const TEST_METADATA = 'Metadata';
   const expectedPubkey =
@@ -34,7 +37,7 @@ describe('DID Module works correctly', () => {
     const didObj = await did.generateDID(TEST_MNEMONIC, TEST_DID, TEST_METADATA);
     assert.strictEqual(Buffer.from(didObj.public_key).toString('hex'), expectedPubkey);
     assert.strictEqual(didObj.identity, 'did:ssid:rocket');
-    assert.strictEqual(didObj.metadata, TEST_METADATA);
+    assert.strictEqual(didObj.metadata, "0x4d65746164617461000000000000000000000000000000000000000000000000");
   });
 
   it('DID details are fetched correctly - positive test', async () => {
@@ -92,11 +95,19 @@ describe('DID Module works correctly', () => {
   });
 
   it('updateMetadata works correctly', async () => {
+    let issuer = 'did:ssid:swn';
+    let owner = 'did:ssid:swn';
+    let didProperty = {
+      pubKey: (await did.getDIDDetails(owner, provider)).public_key,
+      metadata: 'TestMetadata'
+    };
+    let vc_hex = did.encodeDidVC(owner, issuer, didProperty, did.DidActionType.Update, sigKeypairWithBal);
     const data = await did.updateMetadata(
       'did:ssid:swn',
       'TestMetadata',
       sigKeypairWithBal,
-      provider
+      provider,
+      vc_hex
     );
     assert.doesNotReject(data);
     const new_data = await did.getDIDDetails('did:ssid:swn', provider);
@@ -104,12 +115,33 @@ describe('DID Module works correctly', () => {
     assert.strictEqual(new_data.added_block, 0);
   });
 
+  it('updateMetadata by sudo works correctly', async () => {
+    const data = await did.updateMetadata(
+      'did:ssid:swn',
+      'TestMetadata2',
+      sigKeypairWithBal,
+      provider,
+      null
+    );
+    assert.doesNotReject(data);
+    const new_data = await did.getDIDDetails('did:ssid:swn', provider);
+    assert.strictEqual(hexToString(new_data.metadata), 'TestMetadata2');
+    assert.strictEqual(new_data.added_block, 0);
+  });
+
   it('updateMetadata throws error for unregistered DID', async () => {
+    let issuer = 'did:ssid:swn';
+    let owner = 'did:ssid:nonexistentdid';
+    let didProperty = {
+      metadata: 'TestMetadata'
+    };
+    let vc_hex = did.encodeDidVC(owner, issuer, didProperty, did.DidActionType.Update, sigKeypairWithBal);
     const data = did.updateMetadata(
       'did:ssid:nonexistentdid',
       'TestMetadata',
       sigKeypairWithBal,
-      provider
+      provider,
+      vc_hex
     );
     await assert.rejects(data, (err) => {
       assert.strictEqual(err.message, 'did.DIDDoesNotExist');
@@ -138,7 +170,15 @@ describe('DID Module works correctly', () => {
 
     it('storeDIDOnChain works correctly', async () => {
       const newDidObj = await did.generateDID(TEST_MNEMONIC, 'rocket', TEST_METADATA);
-      await did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider);
+      let ownerKeyPair = await keyring.addFromUri(TEST_MNEMONIC);
+      let issuer = 'did:ssid:swn';
+      let didProperty = {
+        pubKey: newDidObj.public_key,
+        metadata: newDidObj.metadata,
+      };
+      let vc_hex = did.encodeDidVC(newDidObj.identity, issuer, didProperty, did.DidActionType.Add, sigKeypairWithBal);
+
+      await did.storeDIDOnChain(newDidObj, ownerKeyPair, provider, vc_hex);
       const newDidDetails = await did.getDIDDetails(newDidObj.identity, provider);
       addedDidBlockNum = newDidDetails.added_block;
       assert.strictEqual(newDidDetails.public_key, `0x${expectedPubkey}`);
@@ -146,9 +186,27 @@ describe('DID Module works correctly', () => {
       assert.strictEqual(hexToString(newDidDetails.metadata), 'Metadata');
     });
 
+    it('storeDIDOnChain by sudo works correctly', async () => {
+      const newDidObj = await did.generateDID(DaveSeed, 'charlie', TEST_METADATA);
+      const davePubKey = '0xd06234191ae0dc1322a5f4cdd966e6051078fd954dfea85d2b49606dc8dc1238'
+      await did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider);
+      const newDidDetails = await did.getDIDDetails(newDidObj.identity, provider);
+      addedDidBlockNum = newDidDetails.added_block;
+      assert.strictEqual(newDidDetails.public_key, `${davePubKey}`);
+      assert.strictEqual(newDidDetails.identifier, did.sanitiseDid('did:ssid:charlie'));
+      assert.strictEqual(hexToString(newDidDetails.metadata), 'Metadata');
+    });
+
     it('storeDIDOnChain throws error on duplicate ssid', async () => {
       const newDidObj = await did.generateDID(NEW_MNEMONIC, 'rocket', TEST_METADATA);
-      const data = did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider);
+      let issuer = 'did:ssid:swn';
+      let didProperty = {
+        pubKey: newDidObj.public_key,
+        metadata: newDidObj.metadata,
+      };
+      let vc_hex = did.encodeDidVC(newDidObj.identity, issuer, didProperty, did.DidActionType.Add, sigKeypairWithBal);
+
+      const data = did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider, vc_hex);
       await assert.rejects(data, (err) => {
         assert.strictEqual(err.message, 'did.DIDAlreadyExists');
         return true;
@@ -157,7 +215,13 @@ describe('DID Module works correctly', () => {
 
     it('storeDIDOnChain throws error on duplicate public key', async () => {
       const newDidObj = await did.generateDID(TEST_MNEMONIC, 'nonexistentdid', TEST_METADATA);
-      const data = did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider);
+      let issuer = 'did:ssid:swn';
+      let didProperty = {
+        pubKey: newDidObj.public_key,
+        metadata: newDidObj.metadata,
+      };
+      let vc_hex = did.encodeDidVC(newDidObj.identity, issuer, didProperty, did.DidActionType.Add, sigKeypairWithBal);
+      const data = did.storeDIDOnChain(newDidObj, sigKeypairWithBal, provider, vc_hex);
       await assert.rejects(data, (err) => {
         assert.strictEqual(err.message, 'did.PublicKeyRegistered');
         return true;
@@ -167,7 +231,12 @@ describe('DID Module works correctly', () => {
     it('updateDidKey works correctly', async () => {
       const didString = testIdentifier;
       const pubKey = await keyring.addFromUri(NEW_MNEMONIC).publicKey;
-      await did.updateDidKey(didString, pubKey, sigKeypairWithBal, provider);
+      let issuer = 'did:ssid:swn';
+      let didProperty = {
+        pubKey,
+      };
+      let vc_hex = did.encodeDidVC(didString, issuer, didProperty, did.DidActionType.Rotate, sigKeypairWithBal);
+      await did.updateDidKey(didString, pubKey, sigKeypairWithBal, provider, vc_hex);
       const newUpdatedDidDetails = await did.getDIDDetails(didString, provider);
       updatedKeyBlockNum = newUpdatedDidDetails.added_block;
       assert.strictEqual(newUpdatedDidDetails.public_key, `0x${expectedNewPubkey}`);
@@ -176,9 +245,26 @@ describe('DID Module works correctly', () => {
       assert.equal(keyHistory.map(data => data[0]).includes('5EhxqnrHHFy32DhcaqYrWiwC82yDiVS4xySysGxsUn462nX2'), true);
     })
 
+    it('updateDidKey by sudo works correctly', async () => {
+      const didString = 'did:ssid:charlie';
+      const pubKey = await keyring.addFromUri(CharlieSeed).publicKey;
+      const charliePubKey = '0xc62bd629cc0476fbfa3de82f0caf1587febeaab0a48090f1d06d8d6f03aae256';
+      await did.updateDidKey(didString, pubKey, sigKeypairWithBal, provider, null);
+      const newUpdatedDidDetails = await did.getDIDDetails(didString, provider);
+      assert.strictEqual(newUpdatedDidDetails.public_key, `${charliePubKey}`);
+      assert.strictEqual(newUpdatedDidDetails.identifier, did.sanitiseDid(didString));
+      const keyHistory = (await did.getDidKeyHistory(didString, provider));
+      assert.equal(keyHistory.map(data => data[0]).includes('5GmvzMeoJMNxKhHQcXN2jscS3knBGR7NaCLBcCnpg9T9hA7o'), true);
+    })
+
     it('updateDidKey throws error on using existing public key', async () => {
       const pubKey = await keyring.addFromUri(NEW_MNEMONIC).publicKey;
-      const data = did.updateDidKey(testIdentifier, pubKey, sigKeypairWithBal, provider);
+      let issuer = 'did:ssid:swn';
+      let didProperty = {
+        pubKey,
+      };
+      let vc_hex = did.encodeDidVC(testIdentifier, issuer, didProperty, did.DidActionType.Rotate, sigKeypairWithBal);
+      const data = did.updateDidKey(testIdentifier, pubKey, sigKeypairWithBal, provider, vc_hex);
       await assert.rejects(data, (err) => {
         assert.strictEqual(err.message, 'did.PublicKeyRegistered');
         return true;
@@ -187,7 +273,12 @@ describe('DID Module works correctly', () => {
 
     it('updateDidKey throws error on using non existent did', async () => {
       const pubKey = await keyring.addFromUri(TEST_MNEMONIC).publicKey;
-      const data = did.updateDidKey('did:ssid:nonexistentdid', pubKey, sigKeypairWithBal, provider);
+      let issuer = 'did:ssid:swn';
+      let didProperty = {
+        pubKey,
+      };
+      let vc_hex = did.encodeDidVC('did:ssid:nonexistentdid', issuer, didProperty, did.DidActionType.Rotate, sigKeypairWithBal);
+      const data = did.updateDidKey('did:ssid:nonexistentdid', pubKey, sigKeypairWithBal, provider, vc_hex);
       await assert.rejects(data, (err) => {
         assert.strictEqual(err.message, 'did.DIDDoesNotExist');
         return true;
@@ -224,6 +315,7 @@ describe('DID Module works correctly', () => {
     // Delete created DID (did:ssid:rocket)
     if (constants.providerNetwork == 'local') {
       await removeDid('did:ssid:rocket', sigKeypairWithBal, provider);
+      await removeDid('did:ssid:charlie', sigKeypairWithBal, provider);
     }
   })
 });

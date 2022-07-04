@@ -5,7 +5,8 @@ const did = require('../src/did.js');
 const { initKeyring } = require('../src/config');
 const { buildConnection } = require('../src/connection.js');
 const constants = require('./test_constants');
-const { removeDid } = require('./helper/helper.js');
+const { removeDid, storeDIDOnChain } = require('./helper/helper.js');
+const utils = require('../src/utils');
 
 describe('Transaction works correctly', () => {
   let sigKeypairWithBal = null;
@@ -21,21 +22,21 @@ describe('Transaction works correctly', () => {
       const didObj = {
         public_key: sigKeypairEve.publicKey, // this is the public key linked to the did
         identity: 'did:ssid:metamui', // this is the actual did
-        metadata: 'Metadata',
+        metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
       };
       let sigKeypairDave = await keyring.addFromUri('//Dave');
       const didObjDave = {
         public_key: sigKeypairDave.publicKey, // this is the public key linked to the did
         identity: 'did:ssid:testing_mui', // this is the actual did
-        metadata: 'Metadata',
+        metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
       };
       try {
-        await did.storeDIDOnChain(didObjDave, sigKeypairWithBal, provider);
+        await storeDIDOnChain(didObjDave, sigKeypairWithBal, provider);
       } catch(err) {
         console.log(err);
       }
       try {
-        await did.storeDIDOnChain(didObj, sigKeypairWithBal, provider);
+        await storeDIDOnChain(didObj, sigKeypairWithBal, provider);
       } catch(err) {
         console.log(err);
       }

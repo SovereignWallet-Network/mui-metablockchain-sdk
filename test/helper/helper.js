@@ -2,10 +2,53 @@ const vc = require('../../src/vc.js');
 const did = require('../../src/did.js');
 const collective = require('../../src/collective.js');
 const tx = require('../../src/transaction.js');
+const utils = require('../../src/utils');
 
 const TEST_DID = 'did:ssid:rocket';
 const TEST_DAVE_DID = "did:ssid:dave";
 const TEST_SWN_DID = "did:ssid:swn";
+
+/**
+ * Store the generated DID object in blockchain
+ * @param {Object} DID
+ * @param {Object} signingKeypair
+ * @param {ApiPromise} api
+ * @returns {String} txnId Txnid for storage operation.
+ */
+ function storeDIDOnChain(DID, signingKeypair, api = false) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || (await buildConnection('local'));
+
+      const tx = provider.tx.sudo.sudo(provider.tx.did.add(DID.public_key, did.sanitiseDid(DID.identity), DID.metadata, null));
+
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }){
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) {
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(new Error(`${section}.${name}`));
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            // console.log(dispatchError.toString());
+            reject(new Error(dispatchError.toString()));
+          }
+        } else if (status.isInBlock) {
+          // console.log('Finalized block hash', status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
+        }
+      });
+    } catch (err) {
+      // console.log(err);
+      reject(err);
+    }
+  });
+}
 
 // To remove DID after testing
 /**
@@ -15,7 +58,7 @@ const TEST_SWN_DID = "did:ssid:swn";
  */
 async function removeDid(didString, sigKeyPair, provider) {
   try {
-    const tx = provider.tx.did.remove(did.sanitiseDid(didString));
+    const tx = provider.tx.sudo.sudo(provider.tx.did.remove(did.sanitiseDid(didString), null));
     await new Promise((resolve, reject) => tx.signAndSend(sigKeyPair, ({ status, dispatchError }) => {
       if (dispatchError) {
         reject('Dispatch error');
@@ -27,6 +70,7 @@ async function removeDid(didString, sigKeyPair, provider) {
     throw new Error(err);
   }
 }
+
 /**
  * Store VC with council
  * @param  {Hex} vcHex
@@ -40,7 +84,7 @@ async function storeVC(vcHex, sigKeypairOwner, sigKeypairRoot, sigKeypairCouncil
     const didObjDave = {
       public_key: sigKeypairCouncil.publicKey, // this is the public key linked to the did
       identity: TEST_DAVE_DID, // this is the actual did
-      metadata: 'Metadata',
+      metadata: utils.encodeData('Metadata'.padEnd(utils.METADATA_BYTES, '\0'), 'metadata'),
     };
     await did.storeDIDOnChain(didObjDave, sigKeypairRoot, provider);
   } catch (err) { }
@@ -107,6 +151,7 @@ async function sudoStoreVC(vcHex, sudoKeyPair, provider) {
 }
 
 module.exports = {
+  storeDIDOnChain,
   removeDid,
   storeVC,
   storeVCDirectly,

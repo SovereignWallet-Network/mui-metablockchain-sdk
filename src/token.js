@@ -631,6 +631,54 @@ async function getFormattedTokenAmount(currencyCode, tokenAmount, provider) {
   return tokenAmount;
 }
 
+/**
+ * Remove token
+ * @param  {String} currencyCode 
+ * @param  {String} vcId
+ * @param  {Bool} clearAccounts
+ * @param  {KeyPair} signingKeypair
+ * @param  {String} identity
+ * @returns {String} Hash
+ */
+ async function removeToken(currencyCode, vcId, clearAccounts, signingKeypair, identity=null, api = false) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const provider = api || await buildConnection('local');
+      identity = identity ? did.sanitiseDid(identity): null;
+      const ccode = sanitiseCCode(currencyCode);
+      const tx = provider.tx.sudo.sudo(
+        provider.tx.tokens.removeToken(ccode, vcId, clearAccounts, identity)
+      );
+      let nonce = await provider.rpc.system.accountNextIndex(signingKeypair.address);
+      let signedTx = tx.sign(signingKeypair, {nonce});
+      await signedTx.send(function ({ status, dispatchError }) {
+        console.log('Transaction status:', status.type);
+        if (dispatchError) {
+          if (dispatchError.isModule) { 
+            // for module errors, we have the section indexed, lookup
+            const decoded = api.registry.findMetaError(dispatchError.asModule);
+            const { documentation, name, section } = decoded;
+            // console.log(`${section}.${name}: ${documentation.join(' ')}`);
+            reject(new Error(`${section}.${name}`));
+          } else {
+            // Other, CannotLookup, BadOrigin, no extra info
+            // console.log(dispatchError.toString());
+            reject(new Error(dispatchError.toString()));
+          }
+        } else if (status.isFinalized) {
+          // console.log('Finalized block hash', status.asFinalized.toHex());
+          // console.log('Transaction send to provider', status.asFinalized.toHex());
+          resolve(signedTx.hash.toHex());
+        }
+      });
+    } catch (err) {
+      // console.log(err);
+      reject(err);
+    }
+  });
+}
+
+
 module.exports = {
   transferToken,
   transferTokenWithMemo,
@@ -650,4 +698,5 @@ module.exports = {
   setBalance,
   sanitiseCCode,
   getFormattedTokenAmount,
+  removeToken,
 };

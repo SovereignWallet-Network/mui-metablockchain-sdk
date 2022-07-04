@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.1.4 July 04, 2022
+
+Upgrade priority: Low.
+
+Changes:
+
+- Remove token functionality added
+
 ## 2.1.3 June 21, 2022
 
 Upgrade priority: Low.
